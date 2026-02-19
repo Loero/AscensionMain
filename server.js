@@ -520,6 +520,59 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
       LIMIT 5
     `, [userId]);
     
+    // 10. EDZÉS - Heti statisztikák (ez a hét)
+    const [workoutWeekStats] = await db.execute(`
+      SELECT 
+        COUNT(*) as entries,
+        COALESCE(SUM(duration_minutes), 0) as total_duration,
+        COALESCE(SUM(calories_burned), 0) as total_calories
+      FROM workout_entries 
+      WHERE user_id = ? 
+      AND YEARWEEK(date, 1) = YEARWEEK(CURDATE(), 1)
+    `, [userId]);
+    
+    // 11. EDZÉS - Havi statisztikák (ez a hónap)
+    const [workoutMonthStats] = await db.execute(`
+      SELECT 
+        COUNT(*) as entries,
+        COALESCE(SUM(duration_minutes), 0) as total_duration,
+        COALESCE(SUM(calories_burned), 0) as total_calories
+      FROM workout_entries 
+      WHERE user_id = ? 
+      AND YEAR(date) = YEAR(CURDATE())
+      AND MONTH(date) = MONTH(CURDATE())
+    `, [userId]);
+    
+    // 12. EDZÉS - Összes statisztika
+    const [workoutTotalStats] = await db.execute(`
+      SELECT 
+        COUNT(*) as entries,
+        COALESCE(SUM(duration_minutes), 0) as total_duration,
+        COALESCE(SUM(calories_burned), 0) as total_calories
+      FROM workout_entries 
+      WHERE user_id = ?
+    `, [userId]);
+    
+    // 13. EDZÉS - Legutóbbi 5 bejegyzés
+    const [recentWorkoutEntries] = await db.execute(`
+      SELECT 
+        id,
+        workout_type,
+        exercise_name,
+        duration_minutes,
+        calories_burned,
+        sets,
+        reps,
+        weight_kg,
+        notes,
+        date,
+        created_at
+      FROM workout_entries 
+      WHERE user_id = ?
+      ORDER BY date DESC, created_at DESC
+      LIMIT 5
+    `, [userId]);
+    
     console.log('✅ Profil adatok összegyűjtve!');
     
     // 10. Válasz összeállítása
@@ -585,6 +638,36 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
             calories: entry.calories,
             proteinG: parseFloat(entry.protein_g).toFixed(1),
             carbsG: parseFloat(entry.carbs_g).toFixed(1),
+            date: entry.date,
+            createdAt: entry.created_at
+          }))
+        },
+        workout: {
+          week: {
+            entries: workoutWeekStats[0].entries,
+            totalDuration: workoutWeekStats[0].total_duration,
+            totalCalories: workoutWeekStats[0].total_calories
+          },
+          month: {
+            entries: workoutMonthStats[0].entries,
+            totalDuration: workoutMonthStats[0].total_duration,
+            totalCalories: workoutMonthStats[0].total_calories
+          },
+          total: {
+            entries: workoutTotalStats[0].entries,
+            totalDuration: workoutTotalStats[0].total_duration,
+            totalCalories: workoutTotalStats[0].total_calories
+          },
+          recentEntries: recentWorkoutEntries.map(entry => ({
+            id: entry.id,
+            workoutType: entry.workout_type,
+            exerciseName: entry.exercise_name,
+            durationMinutes: entry.duration_minutes,
+            caloriesBurned: entry.calories_burned,
+            sets: entry.sets,
+            reps: entry.reps,
+            weightKg: entry.weight_kg ? parseFloat(entry.weight_kg).toFixed(1) : null,
+            notes: entry.notes,
             date: entry.date,
             createdAt: entry.created_at
           }))
@@ -796,6 +879,129 @@ app.post("/api/food/add", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Food add error:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+/* ====== WORKOUT TRACKING ENDPOINTS ====== */
+
+// POST /api/workout - Új edzés hozzáadása
+app.post("/api/workout", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { workoutType, exerciseName, durationMinutes, caloriesBurned, sets, reps, weightKg, notes, date } = req.body;
+    
+    console.log('🏋️ Edzés hozzáadása:', { 
+      userId, 
+      workoutType, 
+      exerciseName, 
+      durationMinutes, 
+      caloriesBurned, 
+      date 
+    });
+    
+    // Input validáció
+    if (!workoutType || !exerciseName || !durationMinutes || !caloriesBurned || !date) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "workoutType, exerciseName, durationMinutes, caloriesBurned és date megadása kötelező!" 
+      });
+    }
+    
+    // Mentés az adatbázisba
+    const [result] = await db.execute(
+      'INSERT INTO workout_entries (user_id, workout_type, exercise_name, duration_minutes, calories_burned, sets, reps, weight_kg, notes, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, workoutType, exerciseName, durationMinutes, caloriesBurned, sets || null, reps || null, weightKg || null, notes || null, date]
+    );
+    
+    console.log('✅ Edzés bejegyzés mentve! ID:', result.insertId);
+    
+    res.json({
+      success: true,
+      message: "Edzés bejegyzés sikeresen hozzáadva",
+      entryId: result.insertId
+    });
+  } catch (error) {
+    console.error("❌ Workout add error:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// GET /api/workout - Edzés bejegyzések lekérése
+app.get("/api/workout", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { startDate, endDate } = req.query;
+    
+    console.log('📊 Edzés bejegyzések lekérése:', { userId, startDate, endDate });
+    
+    let query = 'SELECT * FROM workout_entries WHERE user_id = ?';
+    let params = [userId];
+    
+    if (startDate && endDate) {
+      query += ' AND date BETWEEN ? AND ?';
+      params.push(startDate, endDate);
+    }
+    
+    query += ' ORDER BY date DESC, created_at DESC';
+    
+    const [entries] = await db.execute(query, params);
+    
+    console.log(`✅ ${entries.length} edzés bejegyzés lekérve`);
+    
+    res.json({
+      success: true,
+      entries: entries.map(entry => ({
+        id: entry.id,
+        workoutType: entry.workout_type,
+        exerciseName: entry.exercise_name,
+        durationMinutes: entry.duration_minutes,
+        caloriesBurned: entry.calories_burned,
+        sets: entry.sets,
+        reps: entry.reps,
+        weightKg: entry.weight_kg ? parseFloat(entry.weight_kg).toFixed(1) : null,
+        notes: entry.notes,
+        date: entry.date,
+        createdAt: entry.created_at
+      }))
+    });
+  } catch (error) {
+    console.error("❌ Workout get error:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// DELETE /api/workout/:id - Edzés bejegyzés törlése
+app.delete("/api/workout/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const entryId = req.params.id;
+    
+    console.log('🗑️ Edzés bejegyzés törlése:', { userId, entryId });
+    
+    // Ellenőrizzük, hogy a bejegyzés létezik és a felhasználóhoz tartozik
+    const [entries] = await db.execute(
+      'SELECT id FROM workout_entries WHERE id = ? AND user_id = ?',
+      [entryId, userId]
+    );
+    
+    if (entries.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Edzés bejegyzés nem található vagy nem a te bejegyzésed" 
+      });
+    }
+    
+    await db.execute('DELETE FROM workout_entries WHERE id = ?', [entryId]);
+    
+    console.log('✅ Edzés bejegyzés törölve!');
+    
+    res.json({
+      success: true,
+      message: "Edzés bejegyzés sikeresen törölve"
+    });
+  } catch (error) {
+    console.error("❌ Workout delete error:", error);
     res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
   }
 });
