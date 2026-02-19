@@ -1,51 +1,130 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="../assets/css/main_style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ascension – Főoldal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/main_style.css" />
 </head>
 <body class="page-loaded">
 
-    <!-- MINIMAL HEADER -->
-    <header class="core-header">
-        <nav class="core-nav">
-            <a href="../oldalak/menupontok/Test.html">Test</a>
-            <a href="../oldalak/menupontok/Arc.html">Arc</a>
-            <a href="../oldalak/menupontok/Mental.html">Mentál</a>
-        </nav>
-        <!-- Bejelentkezés/Regisztráció gomb -->
-        <button
-            id="auth-toggle"
-            class="auth-toggle"
-            aria-label="Bejelentkezés / Regisztráció"
-            title="Bejelentkezés / Regisztráció"
-        >
-            Bejelentkezés
-        </button>
-    </header>
+    <!-- NAVIGATION -->
+    <nav class="main-nav">
+        <button class="nav-btn" data-target="faq">FAQ</button>
+        <button class="nav-btn" data-target="about">Mi az az Ascension</button>
+        <button class="nav-btn" data-target="transformations">Átalakulások</button>
+    </nav>
 
     <!-- HERO -->
     <section class="core-hero">
-        <h2>Beyond <span id="typewriter-text" class="typewriter-word"></span><span class="cursor">|</span></h2>
+        <h2 class="scroll-reveal">Beyond <span id="typewriter-text" class="typewriter-word"></span><span class="cursor">|</span></h2>
         
-        <p>
+        <p class="scroll-reveal stagger-1">
             Ez nem motiváció.<br>
             Ez egy rendszer azoknak, akik felelősséget vállalnak.
         </p>
-        <div class="tagline-ladder">
+        
+        <div class="tagline-ladder-section scroll-reveal stagger-2">
+          <div class="tagline-ladder">
             <div class="tagline-row">Softmaxxing • Hardmaxxing • Rating & Progress Tracking</div>
             <div class="tagline-row">Edzés • Táplálkozás • Arcfejlesztés • Stílus • Mentális edge</div>
+          </div>
         </div>
     </section>
 
+    <!-- FAQ SECTION -->
+    <section id="faq" class="content-section">
+        <div class="section-content">
+            <h2>GYAKRAN ISMÉTELT KÉRDÉSEK</h2>
+            <div class="faq-item">
+                <h3>Mi az a looksmaxxing?</h3>
+                <p>A looksmaxxing a külső megjelenés tudatos optimalizálása tudományos módszerekkel.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Mennyi idő alatt láthatók eredmények?</h3>
+                <p>Átlagosan 90 nap alatt +1.4 PSL javulás érhető el a rendszer következetes alkalmazásával.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Szükséges edzéstapasztalat?</h3>
+                <p>Nem, a rendszer minden szinten működik, kezdőtől a profi szintig.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="content-section">
+        <div class="section-content">
+            <h2>MI AZ ASCENSION?</h2>
+            <p>Az Ascension egy komplett rendszer a férfiak önfejlesztésére. Nem csupán motivációs tartalom, hanem egy tudományos alapú megközelítés, amely lefedi a test, arc, stílus és mentális fejlődés minden területét.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Test</h3>
+                    <p>Személyre szabott edzéstervek, táplálkozási útmutatók és progress tracking.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Arc</h3>
+                    <p>Bőrápolási rutinok, arcápolási tippek és AI elemzés a maximális eredményekért.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Mentál</h3>
+                    <p>Mentális edzések, meditációs technikák és tudatossági gyakorlatok.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRANSFORMATIONS SECTION -->
+    <section id="transformations" class="content-section">
+        <div class="section-content">
+            <h2>ÁTALAKULÁSOK</h2>
+            <p>Valódi eredmények valós emberektől, akik követték a rendszert.</p>
+            
+            <div class="transformation-grid">
+                <div class="transformation-card">
+                    <div class="before-after">
+                        <div class="before">Before</div>
+                        <div class="after">After</div>
+                    </div>
+                    <h3>Péter, 28</h3>
+                    <p>+2.1 PSL 6 hónap alatt</p>
+                </div>
+                <div class="transformation-card">
+                    <div class="before-after">
+                        <div class="before">Before</div>
+                        <div class="after">After</div>
+                    </div>
+                    <h3>Gábor, 35</h3>
+                    <p>+1.8 PSL 4 hónap alatt</p>
+                </div>
+                <div class="transformation-card">
+                    <div class="before-after">
+                        <div class="before">Before</div>
+                        <div class="after">After</div>
+                    </div>
+                    <h3>Ádám, 24</h3>
+                    <p>+1.6 PSL 3 hónap alatt</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
     <!-- YOUTUBE VIDEO SECTION -->
     <section class="video-section">
-        <p class="video-intro">
+        <p class="video-intro scroll-reveal">
             Egy rövid videó, ami elmagyarázza a looksmaxxingot röviden.
         </p>
-        <div class="video-container">
+        <div class="video-container scroll-reveal stagger-1">
             <iframe 
                 id="youtube-video"
                 src="https://www.youtube.com/embed/jfulHL73Mhc" 
@@ -54,42 +133,32 @@
                 allowfullscreen>
             </iframe>
         </div>
-        <div class="video-stats">
+        <div class="video-stats scroll-reveal stagger-2">
             <div><strong>1400+ férfi</strong> vállalta már a felelősséget.</div>
             <div><strong>Átlagos progress:</strong> +1.4 PSL 90 nap alatt*</div>
             <small>*valódi tagok önbevallása alapján</small>
         </div>
-        <div class="video-figure">
+        <div class="video-figure scroll-reveal stagger-3">
             <img src="../assets/img/gigachad.png" alt="Gigachad" />
         </div>
         
-        <div class="tagline-ladder">
+        <div class="tagline-ladder-section scroll-reveal stagger-4">
+          <div class="tagline-ladder">
             <div class="tagline-row">Edzés • Arcápolás • Egészség • Tökéletes élet</div>
+          </div>
+          
         </div>
+        
     </section>
-
     
 
+    
     <!-- NAPI TEVÉKENYSÉGEK: Edzés, Arcápolás, Mentális egészség (Bottom) -->
     <section class="daily-checklist">
-        <div class="dropdown-checklist">
-            <button class="dropdown-toggle">Edzés</button>
-            <div class="dropdown-content">
-                <label><input type="checkbox" id="train-check"> Ma edzettem</label>
-            </div>
-        </div>
-        <div class="dropdown-checklist">
-            <button class="dropdown-toggle">Arcápolás</button>
-            <div class="dropdown-content">
-                <label><input type="checkbox" id="face-check"> Ma foglalkoztam az arcápolásommal</label>
-            </div>
-        </div>
-        <div class="dropdown-checklist">
-            <button class="dropdown-toggle">Mentális egészség</button>
-            <div class="dropdown-content">
-                <label><input type="checkbox" id="mental-check"> Ma foglalkoztam a mentális egészségemmel</label>
-            </div>
-        </div>
+    </section>
+
+    <!-- GOMBOK SZEKCIÓ (scroll animáció nélkül) -->
+    <section class="button-section">
         <a href="#" id="cta-join" class="cta-join" aria-label="Csatlakozz a rendszerhez">Csatlakozz a rendszerhez</a>
     </section>    <!-- Bejelentkezés/Regisztráció Modal -->
     <div id="auth-modal" class="auth-modal">

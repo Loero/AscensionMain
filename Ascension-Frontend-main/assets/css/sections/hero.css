@@ -1,0 +1,71 @@
+/* === HERO SECTION === */
+.core-hero {
+  padding: 100px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.core-hero h2 {
+  font-size: 3.5rem;
+  margin-bottom: var(--spacing-xl);
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.core-hero p {
+  max-width: 600px;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin-bottom: var(--spacing-2xl);
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+.core-hero p strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Hero specific tagline ladder */
+.core-hero .tagline-ladder {
+  margin-top: var(--spacing-2xl);
+  text-align: center;
+}
+
+.core-hero .tagline-row {
+  margin: var(--spacing-sm) 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  transition: color var(--transition-normal);
+}
+
+.core-hero .tagline-row:hover {
+  color: var(--accent);
+}
+
+/* Responsive hero */
+@media (max-width: 768px) {
+  .core-hero {
+    padding: 60px 20px;
+    min-height: 80vh;
+  }
+  
+  .core-hero h2 {
+    font-size: 2.5rem;
+  }
+  
+  .core-hero p {
+    font-size: 1rem;
+  }
+  
+  .core-hero .tagline-row {
+    font-size: 1rem;
+  }
+}

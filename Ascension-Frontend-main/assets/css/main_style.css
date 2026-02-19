@@ -1,3 +1,84 @@
+/* === SCROLL REVEAL ANIMATIONS === */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-reveal-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal-left.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-reveal-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal-right.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scroll-reveal-scale {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal-scale.revealed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Staggered animations */
+.scroll-reveal.stagger-1 { transition-delay: 0.1s; }
+.scroll-reveal.stagger-2 { transition-delay: 0.2s; }
+.scroll-reveal.stagger-3 { transition-delay: 0.3s; }
+.scroll-reveal.stagger-4 { transition-delay: 0.4s; }
+.scroll-reveal.stagger-5 { transition-delay: 0.5s; }
+
+/* Ensure buttons and links are always visible and clickable */
+.scroll-reveal .cta-join,
+.scroll-reveal-left .cta-join,
+.scroll-reveal-right .cta-join,
+.scroll-reveal-scale .cta-join {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+  z-index: 10;
+}
+
+/* === BUTTON SECTION (no scroll animation) === */
+.button-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 20px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.button-section .cta-join {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+}
+
 /* ARCÁPOLÁSI KÉRDŐÍV */
 #skincare-quiz {
   max-width: 420px;
@@ -84,9 +165,25 @@
     transform: none;
   }
 }
+/* === TAGLINE LADDER SECTION === */
+.tagline-ladder-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 20px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.tagline-ladder-section .tagline-ladder {
+  margin: 0;
+  text-align: center;
+}
+
 /* YOUTUBE VIDEO SECTION */
 .video-section {
-  padding: 100px 20px;
+  padding: 60px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -172,54 +269,6 @@
   z-index: 1;
 }
 
-.dropdown-checklist {
-  position: relative;
-  min-width: 220px;
-  text-align: left;
-}
-
-.dropdown-toggle {
-  width: 100%;
-  padding: 16px 24px;
-  background: var(--charcoal);
-  color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  font-size: 1.2rem;
-  font-family: inherit;
-  cursor: pointer;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.12);
-  transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
-  outline: none;
-}
-
-/* Disabled state for dropdown toggles */
-.dropdown-toggle.disabled {
-  pointer-events: none !important;
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-}
-
-.dropdown-toggle.disabled:hover,
-.dropdown-toggle.disabled:focus,
-.dropdown-toggle.disabled:active {
-  background: var(--charcoal) !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.12) !important;
-  transform: none !important;
-}
-.dropdown-toggle:hover,
-.dropdown-toggle:focus {
-  background: var(--graphite);
-  border-color: rgba(255, 215, 0, 0.35);
-  box-shadow: 0 4px 20px 0 var(--glow), 0 0 0 1px rgba(255, 215, 0, 0.08);
-  transform: translateY(-1px);
-}
-.dropdown-toggle:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 12px 0 var(--glow);
-}
-
 /* Negyedik CTA: Csatlakozz a rendszerhez (kiemelő stílus) */
 .cta-join {
   min-width: 220px;
@@ -252,46 +301,31 @@
   box-shadow: 0 2px 14px 0 rgba(255, 215, 0, 0.35);
 }
 
-.dropdown-content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 110%;
-  background: var(--dark);
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18);
-  padding: 18px 24px;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-10px) scaleY(0.95);
-  transition: opacity 0.35s cubic-bezier(0.4, 2, 0.6, 1),
-    transform 0.35s cubic-bezier(0.4, 2, 0.6, 1);
-  z-index: 2;
+/* === BUTTONS === */
+.cta-join {
+  display: inline-block;
+  padding: 16px 32px;
+  background: var(--accent);
+  color: #000;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
 }
-.dropdown-checklist.open .dropdown-content {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0) scaleY(1);
+
+.cta-join:hover {
+  background: #FFC125;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(255, 215, 0, 0.4);
 }
-.dropdown-content label {
-  font-size: 1rem;
-  color: var(--text);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+
+.cta-join:active {
+  transform: translateY(0);
 }
-.dropdown-content input[type="checkbox"] {
-  accent-color: #FFD700;
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-  border-radius: 4px;
-  transition: box-shadow 0.2s;
-}
-.dropdown-content input[type="checkbox"]:checked {
-  box-shadow: 0 0 0 2px #FFD700;
-}
+
 :root {
   --graphite: #1f2022;
   --charcoal: #2b2b2b;
@@ -322,43 +356,250 @@ body {
   scroll-behavior: smooth;
 }
 
-/* HEADER */
+/* === MAIN NAVIGATION === */
+.main-nav {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 12px 20px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.nav-btn.active {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.nav-btn:active {
+  transform: translateY(0);
+}
+
+/* === CONTENT SECTIONS === */
+.content-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  position: relative;
+}
+
+.section-content {
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+}
+
+.section-content h2 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: var(--text);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.section-content p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+
+/* FAQ Section */
+.faq-item {
+  background: rgba(43, 43, 43, 0.8);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.faq-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.1);
+}
+
+.faq-item h3 {
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+
+.faq-item p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Feature Grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.feature-card {
+  background: rgba(43, 43, 43, 0.8);
+  border-radius: 12px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(255, 215, 0, 0.15);
+}
+
+.feature-card h3 {
+  color: var(--accent);
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+}
+
+.feature-card p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Transformation Grid */
+.transformation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 40px;
+  margin-top: 50px;
+}
+
+.transformation-card {
+  background: rgba(43, 43, 43, 0.8);
+  border-radius: 12px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.transformation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(255, 215, 0, 0.15);
+}
+
+.before-after {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.before, .after {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 40px 20px;
+  text-align: center;
+  font-weight: bold;
+  color: var(--muted);
+}
+
+.before {
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(0, 0, 0, 0.5));
+}
+
+.after {
+  background: linear-gradient(135deg, rgba(0, 255, 0, 0.1), rgba(0, 0, 0, 0.5));
+}
+
+.transformation-card h3 {
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+}
+
+.transformation-card p {
+  color: var(--muted);
+  margin: 0;
+  font-weight: bold;
+}
+
+/* === LOGO STYLES === */
+.header-left {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+}
+
+/* CORE HEADER */
 .core-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 40px 20px 30px;
-  text-align: center;
+  padding: 20px;
   background: #000000;
   backdrop-filter: none;
   position: relative;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
 }
 
 .core-header h1 {
   font-size: 2.4rem;
   letter-spacing: 0.08em;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.08), 0 0 24px var(--glow);
-}
-
-.core-nav {
-  position: absolute;
-  top: 28px;
-  right: 180px;
-  margin: 0;
-}
-
-.core-nav a {
-  margin: 0 12px;
-  text-decoration: none;
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  font-size: 0.9rem;
-  transition: color 0.25s ease;
-}
-
-.core-nav a:hover {
-  color: var(--text);
 }
 
 /* HERO */
@@ -369,7 +610,7 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 40px 20px;
+  padding: 250px 20px;
   position: relative;
   z-index: 1;
 }
@@ -1612,8 +1853,8 @@ input::placeholder {
 /* Auth gomb a jobb felső sarokban (hangerő gomb mellett) */
 .auth-toggle {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
     z-index: 3;
     background: rgba(0,0,0,0.4);
     color: #f5f5f5;
@@ -1831,10 +2072,24 @@ input::placeholder {
 /* Reszponzív mobilra */
 @media (max-width: 768px) {
     .auth-toggle {
-        right: 16px;
-        top: 70px;
+        right: 20px;
+        top: 20px;
         font-size: 12px;
         padding: 8px 16px;
+    }
+    
+    .header-left {
+        top: 20px;
+        left: 20px;
+    }
+    
+    .logo-img {
+        height: 30px;
+        max-width: 120px;
+    }
+    
+    .core-nav {
+        display: none;
     }
     
     .auth-modal-content {
@@ -2072,6 +2327,158 @@ input::placeholder {
     .entry-details {
         flex-wrap: wrap;
         gap: 10px;
+    }
+}
+
+/* ====== MOTIVÁCIÓS SZEKCIÓ ====== */
+.motivation-section {
+    margin: 60px auto 40px;
+    max-width: 800px;
+    padding: 40px 30px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.1);
+    position: relative;
+}
+
+.motivation-section h3 {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #FFD700;
+    font-family: 'Cinzel', 'Copperplate Gothic', 'Copperplate', sans-serif;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.motivation-quote {
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 60px 20px 20px;
+}
+
+.quote-text {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    color: var(--text);
+    text-align: center;
+    font-style: italic;
+    font-family: 'Cinzel', 'Copperplate Gothic', 'Copperplate', sans-serif;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeInQuote {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-refresh-quote {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFD700;
+}
+
+.btn-refresh-quote:hover {
+    background: rgba(255, 215, 0, 0.25);
+    border-color: rgba(255, 215, 0, 0.5);
+    transform: translateY(-50%) rotate(180deg);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-refresh-quote:active {
+    transform: translateY(-50%) rotate(180deg) scale(0.95);
+}
+
+/* ====== VISSZA A FŐOLDALRA GOMB ====== */
+.back-to-home {
+    margin: 50px auto 30px;
+    text-align: center;
+    padding: 20px;
+}
+
+.btn-back-home {
+    display: inline-block;
+    padding: 14px 30px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 10px;
+    color: #FFD700;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-family: 'Cinzel', 'Copperplate Gothic', 'Copperplate', sans-serif;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
+}
+
+.btn-back-home:hover {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 215, 0, 0.2) 100%);
+    border-color: rgba(255, 215, 0, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.3);
+    color: #FFF;
+}
+
+.btn-back-home:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.2);
+}
+
+/* Reszponzív a motivációs szekcióhoz */
+@media (max-width: 768px) {
+    .motivation-section {
+        padding: 30px 20px;
+        margin: 40px 20px;
+    }
+    
+    .motivation-section h3 {
+        font-size: 1.4rem;
+    }
+    
+    .motivation-quote {
+        padding: 15px 50px 15px 15px;
+        min-height: 100px;
+    }
+    
+    .quote-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .btn-refresh-quote {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        right: 15px;
+    }
+    
+    .btn-back-home {
+        font-size: 1rem;
+        padding: 12px 24px;
     }
 }
 

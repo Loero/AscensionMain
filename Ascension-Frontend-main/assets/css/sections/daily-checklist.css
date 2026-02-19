@@ -1,0 +1,87 @@
+/* === DAILY CHECKLIST SECTION === */
+/* This section is already covered in components/dropdowns.css */
+/* Additional daily checklist specific styles can go here */
+
+.daily-checklist-section {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  margin: var(--spacing-2xl) auto;
+  max-width: 1200px;
+}
+
+.checklist-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.checklist-header h3 {
+  color: var(--accent);
+  font-size: 2rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.checklist-header p {
+  color: var(--muted);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.checklist-progress {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.progress-bar {
+  width: 200px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-primary);
+  transition: width var(--transition-normal);
+}
+
+.progress-text {
+  margin-left: var(--spacing-md);
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.checklist-tips {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-2xl);
+}
+
+.checklist-tips h4 {
+  color: var(--accent);
+  margin-bottom: var(--spacing-md);
+}
+
+.checklist-tips ul {
+  list-style: none;
+}
+
+.checklist-tips li {
+  color: var(--muted);
+  margin-bottom: var(--spacing-sm);
+  padding-left: var(--spacing-lg);
+  position: relative;
+}
+
+.checklist-tips li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: bold;
+}

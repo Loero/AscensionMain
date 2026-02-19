@@ -16,6 +16,11 @@
   </head>
   <body>
     <header class="core-header">
+      <div class="header-left">
+        <a href="../main.html" class="logo-link" aria-label="Ascension Főoldal">
+          <img src="../../assets/img/logo.png" alt="Ascension Logo" class="logo-img" />
+        </a>
+      </div>
       <nav class="core-nav">
         <a href="../menupontok/Test.html">Test</a>
         <a href="../menupontok/Arc.html">Arc</a>
@@ -344,16 +349,19 @@
         <div class="result-card">
           <h4>Mai alkohol bejegyzések <span id="alcohol-count" class="food-count">(0)</span></h4>
           <div id="alcohol-list" class="food-list"></div>
-        </div>
-
-        <div class="result-card highlight">
+        </div>        <div class="result-card highlight">
           <h4>Összesítés (ma)</h4>
           <p id="alcohol-total-ml">Mennyiség: 0 ml</p>
           <p id="alcohol-total-calories">Kalória: 0 kcal</p>
           <p id="alcohol-total-count">Italok száma: 0</p>
         </div>
       </section>
-    </main>    <!-- Bejelentkezés/Regisztráció Modal -->
+      
+      <!-- Vissza a főoldalra gomb -->
+      <div class="back-to-home">
+        <a href="../main.html" class="btn-back-home">← Vissza a főoldalra</a>
+      </div>
+    </main><!-- Bejelentkezés/Regisztráció Modal -->
     <div id="auth-modal" class="auth-modal">
       <div class="auth-modal-content">
         <button class="auth-close" aria-label="Bezárás">&times;</button>

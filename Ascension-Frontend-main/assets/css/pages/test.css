@@ -1,0 +1,212 @@
+/* === TEST PAGE SPECIFIC STYLES === */
+/* Test page specific styles for forms and calculations */
+
+.data-input-section {
+  margin: var(--spacing-2xl) auto;
+  max-width: 900px;
+  padding: var(--spacing-2xl);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+}
+
+.data-input-section h3 {
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  font-size: 1.8rem;
+}
+
+.result-section {
+  margin: var(--spacing-2xl) auto;
+  max-width: 900px;
+  padding: var(--spacing-2xl);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+}
+
+.result-section h3 {
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  font-size: 1.8rem;
+}
+
+.result-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  transition: all var(--transition-normal);
+}
+
+.result-card:hover {
+  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+.result-card.highlight {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.result-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-xs);
+}
+
+.result-value {
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.macro-breakdown {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.macro-breakdown h4 {
+  color: var(--accent);
+  margin-bottom: var(--spacing-md);
+}
+
+.macro-breakdown p {
+  color: var(--text);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Training section */
+.training-section {
+  margin: var(--spacing-2xl) auto;
+  max-width: 900px;
+  padding: var(--spacing-2xl);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+}
+
+.training-section h3 {
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  font-size: 1.8rem;
+}
+
+/* Tracker section */
+.tracker-section {
+  margin: var(--spacing-2xl) auto;
+  max-width: 900px;
+  padding: var(--spacing-2xl);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+}
+
+.tracker-section h3 {
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  font-size: 1.8rem;
+}
+
+.tracker-info {
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  font-size: 1.1rem;
+}
+
+.tracker-history {
+  margin-top: var(--spacing-2xl);
+}
+
+.tracker-history h4 {
+  color: var(--accent);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Food tracker specific */
+.food-control-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: var(--spacing-md);
+  align-items: end;
+  margin-bottom: var(--spacing-lg);
+}
+
+.food-preview {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.food-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.food-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background var(--transition-fast);
+}
+
+.food-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.food-name {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.food-calories {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.food-count {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Alcohol tracker specific */
+.custom-alcohol-fields {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+/* Responsive test page */
+@media (max-width: 768px) {
+  .data-input-section,
+  .result-section,
+  .training-section,
+  .tracker-section {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) auto;
+  }
+  
+  .food-control-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .result-value {
+    font-size: 1.2rem;
+  }
+}

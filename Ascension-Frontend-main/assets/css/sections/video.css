@@ -1,0 +1,96 @@
+/* === VIDEO SECTION === */
+.video-section {
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-lg);
+  position: relative;
+  z-index: 1;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), var(--shadow-gold);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video-intro {
+  max-width: 720px;
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+.video-stats {
+  max-width: 720px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.video-stats strong {
+  color: var(--accent);
+}
+
+.video-stats small {
+  display: block;
+  margin-top: var(--spacing-xs);
+  font-size: 0.8rem;
+  color: #8f8f8f;
+}
+
+.video-figure {
+  margin-top: var(--spacing-2xl);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 100;
+  filter: grayscale(100%) brightness(0.5);
+}
+
+.video-figure img {
+  max-width: 400px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)) 
+          drop-shadow(0 0 40px rgba(255, 215, 0, 0.4)) 
+          drop-shadow(0 0 60px rgba(255, 215, 0, 0.2));
+}
+
+/* Responsive video section */
+@media (max-width: 768px) {
+  .video-section {
+    padding: 40px 20px;
+    gap: var(--spacing-md);
+  }
+  
+  .video-container {
+    max-width: 100%;
+  }
+  
+  .video-intro,
+  .video-stats {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  .video-figure img {
+    max-width: 300px;
+  }
+}

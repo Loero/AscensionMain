@@ -1,0 +1,44 @@
+/* === TAGLINE LADDER SECTION === */
+.tagline-ladder-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: var(--spacing-lg) var(--spacing-lg);
+  position: relative;
+  z-index: 1;
+}
+
+.tagline-ladder-section .tagline-ladder {
+  margin: 0;
+  text-align: center;
+}
+
+.tagline-ladder {
+  margin-top: 2px;
+  text-align: center;
+}
+
+.tagline-row {
+  margin: var(--spacing-sm) 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  transition: color var(--transition-normal);
+}
+
+.tagline-row:hover {
+  color: var(--accent);
+}
+
+/* Responsive tagline */
+@media (max-width: 768px) {
+  .tagline-ladder-section {
+    min-height: 50vh;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .tagline-row {
+    font-size: 1rem;
+  }
+}

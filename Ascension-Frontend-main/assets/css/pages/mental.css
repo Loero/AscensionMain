@@ -1,0 +1,251 @@
+/* === MENTAL PAGE SPECIFIC STYLES === */
+/* Mentális egészség és fejlesztés specifikus stílusok */
+
+.mental-section {
+  max-width: 800px;
+  margin: var(--spacing-3xl) auto;
+  padding: var(--spacing-2xl);
+  background: rgba(34, 34, 34, 0.85);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.mental-section h2 {
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  font-size: 2rem;
+}
+
+.mental-section h3 {
+  color: var(--text);
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.5rem;
+}
+
+/* Mentális gyakorlatok kártyái */
+.mental-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin: var(--spacing-2xl) 0;
+}
+
+.mental-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.mental-card:hover {
+  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.mental-card h4 {
+  color: var(--accent);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.2rem;
+}
+
+.mental-card p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+}
+
+.mental-card .duration {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+/* Meditáció timer */
+.meditation-timer {
+  background: var(--gradient-dark);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-3xl);
+  margin: var(--spacing-2xl) auto;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    var(--shadow-gold);
+  backdrop-filter: blur(10px);
+}
+
+.timer-display {
+  font-size: 3rem;
+  color: var(--accent);
+  font-weight: bold;
+  margin-bottom: var(--spacing-xl);
+  font-family: var(--font-secondary);
+}
+
+.timer-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.timer-btn {
+  background: var(--gradient-primary);
+  color: var(--dark);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-glow);
+}
+
+.timer-btn:hover {
+  background: var(--gradient-secondary);
+  transform: translateY(-1px);
+}
+
+.timer-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.timer-presets {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.preset-btn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Hangulat tracker */
+.mood-tracker {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin: var(--spacing-2xl) auto;
+  max-width: 600px;
+}
+
+.mood-tracker h4 {
+  color: var(--accent);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.mood-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.mood-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.mood-btn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+.mood-btn.selected {
+  background: rgba(255, 215, 0, 0.3);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.mood-note {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--charcoal);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Progress chart */
+.progress-chart {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin: var(--spacing-2xl) auto;
+  max-width: 600px;
+}
+
+.progress-chart h4 {
+  color: var(--accent);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.chart-container {
+  height: 200px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+/* Responsive mental page */
+@media (max-width: 768px) {
+  .mental-section {
+    margin: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+  
+  .mental-cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+  
+  .meditation-timer {
+    margin: var(--spacing-lg);
+    padding: var(--spacing-xl);
+  }
+  
+  .timer-display {
+    font-size: 2rem;
+  }
+  
+  .mood-options {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

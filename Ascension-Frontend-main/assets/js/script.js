@@ -195,7 +195,43 @@ document.addEventListener("DOMContentLoaded", () => {
   typeWriter();
 });
 
-/* Daily checklist: dropdown toggle (open/close) */
+/* === SCROLL REVEAL ANIMATION === */
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollRevealElements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale');
+    
+    const revealOnScroll = function() {
+        scrollRevealElements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementBottom = element.getBoundingClientRect().bottom;
+            const windowHeight = window.innerHeight;
+            
+            // Reveal element when it's 15% visible from bottom
+            if (elementTop < windowHeight * 0.85) {
+                element.classList.add('revealed');
+            }
+        });
+    };
+    
+    // Initial check
+    revealOnScroll();
+    
+    // Check on scroll with throttling
+    let ticking = false;
+    const scrollHandler = function() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                revealOnScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
+    
+    window.addEventListener('scroll', scrollHandler);
+    window.addEventListener('resize', revealOnScroll);
+});
+
+/* DAILY CHECKLIST: dropdown toggle (open/close) */
 document.addEventListener("DOMContentLoaded", () => {
   const toggles = document.querySelectorAll(".dropdown-toggle");
   const container = document.querySelector(".daily-checklist");

@@ -16,11 +16,18 @@
   </head>
   <body>
     <header class="core-header">
+      <div class="header-left">
+        <a href="../main.html" class="logo-link" aria-label="Ascension Főoldal">
+          <img src="../../assets/img/logo.png" alt="Ascension Logo" class="logo-img" />
+        </a>
+      </div>
+      
       <nav class="core-nav">
         <a href="../menupontok/Test.html">Test</a>
         <a href="../menupontok/Arc.html">Arc</a>
         <a href="../menupontok/Mental.html">Mentál</a>
       </nav>
+      
       <!-- Bejelentkezés/Regisztráció gomb -->
       <button
         id="auth-toggle"
@@ -54,10 +61,13 @@
 
         <br />
         <button type="submit">AI elemzés indítása</button>
-      </form>
-
-      <div id="aiResult" style="display: none; margin-top: 15px"></div>
+      </form>      <div id="aiResult" style="display: none; margin-top: 15px"></div>
     </section>
+    
+    <!-- Vissza a főoldalra gomb -->
+    <div class="back-to-home">
+      <a href="../main.html" class="btn-back-home">← Vissza a főoldalra</a>
+    </div>
 
     <!-- Bejelentkezés/Regisztráció Modal -->
     <div id="auth-modal" class="auth-modal">
