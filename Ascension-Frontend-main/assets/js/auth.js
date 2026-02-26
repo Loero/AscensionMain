@@ -17,21 +17,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ellenőrizzük van-e bejelentkezett felhasználó
     checkAuthStatus();
 
-    // "Csatlakozz a rendszerhez" → modal megnyitása Regisztráció tabbal
+    // "Csatlakozz a rendszerhez" → modal megnyitása
     if (ctaJoin) {
         ctaJoin.addEventListener('click', function(e) {
             e.preventDefault();
             const user = JSON.parse(localStorage.getItem('user'));
-            if (user) return;
+            
+            if (user) {
+                // User is logged in, redirect to dashboard
+                window.location.href = './dashboard.html';
+                return;
+            }
+            
             authModal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            authTabs.forEach(t => t.classList.remove('active'));
-            const registerTab = document.querySelector('.auth-tab[data-tab="register"]');
-            if (registerTab) {
-                registerTab.classList.add('active');
-                registerForm.classList.add('active');
-                loginForm.classList.remove('active');
-            }
+            
+            // Don't force tab switch - let user choose between login/register
         });
     }    // Modal megnyitása
     authToggle.addEventListener('click', function(e) {
@@ -118,6 +119,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.body.style.overflow = 'auto';
                 
                 updateAuthButton();
+                
+                // Redirect to dashboard after successful login
+                window.location.href = './dashboard.html';
             } else {
                 alert(`❌ ${data.error}`);
             }
@@ -165,6 +169,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.body.style.overflow = 'auto';
                 
                 updateAuthButton();
+                
+                // Redirect to dashboard after successful registration
+                window.location.href = './dashboard.html';
             } else {
                 alert(`❌ ${data.error}`);
             }

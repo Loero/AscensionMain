@@ -259,15 +259,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (authModal) {
           authModal.classList.add("active");
           document.body.style.overflow = "hidden";
-
-          // Switch to registration tab
-          authTabs.forEach(t => t.classList.remove("active"));
-          const registerTab = document.querySelector('.auth-tab[data-tab="register"]');
-          if (registerTab) {
-            registerTab.classList.add("active");
-            registerForm.classList.add("active");
-            loginForm.classList.remove("active");
-          }
+          
+          // Don't force tab switch - let user choose between login/register
         }
         return;
       }
@@ -295,40 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-  // Handle CTA button click based on auth status
-  if (ctaJoin) {
-    ctaJoin.addEventListener("click", function(e) {
-      e.preventDefault();
-      
-      const user = JSON.parse(localStorage.getItem('user'));
-      
-      if (user) {
-        // User is logged in, redirect to Test page
-        window.location.href = "../oldalak/menupontok/Test.html";
-      } else {
-        // User is not logged in, open registration modal
-        const authModal = document.getElementById("auth-modal");
-        const authTabs = document.querySelectorAll(".auth-tab");
-        const registerForm = document.getElementById("register-form");
-        const loginForm = document.getElementById("login-form");
-
-        if (authModal) {
-          authModal.classList.add("active");
-          document.body.style.overflow = "hidden";
-
-          // Switch to registration tab
-          authTabs.forEach(t => t.classList.remove("active"));
-          const registerTab = document.querySelector('.auth-tab[data-tab="register"]');
-          if (registerTab) {
-            registerTab.classList.add("active");
-            registerForm.classList.add("active");
-            loginForm.classList.remove("active");
-          }
-        }
-      }
-    });
-  }
 
   // Re-enable dropdown functionality
   toggles.forEach((btn) => {

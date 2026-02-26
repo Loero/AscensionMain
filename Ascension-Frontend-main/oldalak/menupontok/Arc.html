@@ -13,31 +13,62 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../../assets/css/main_style.css" />
+    <link rel="stylesheet" href="../../assets/css/dashboard_style.css" />
   </head>
   <body>
-    <header class="core-header">
-      <div class="header-left">
-        <a href="../main.html" class="logo-link" aria-label="Ascension Főoldal">
-          <img src="../../assets/img/logo.png" alt="Ascension Logo" class="logo-img" />
-        </a>
-      </div>
-      
-      <nav class="core-nav">
-        <a href="../menupontok/Test.html">Test</a>
-        <a href="../menupontok/Arc.html">Arc</a>
-        <a href="../menupontok/Mental.html">Mentál</a>
-      </nav>
-      
-      <!-- Bejelentkezés/Regisztráció gomb -->
-      <button
-        id="auth-toggle"
-        class="auth-toggle"
-        aria-label="Bejelentkezés / Regisztráció"
-        title="Bejelentkezés / Regisztráció"
-      >
-        Bejelentkezés
-      </button>
+    <header class="dashboard-header">
+        <div class="header-left">
+        </div>
+        
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </header>
+
+    <!-- Mobile Navigation Menu -->
+    <nav class="mobile-nav" id="mobile-nav">
+        <div class="nav-content">
+            <button class="nav-close" id="nav-close" aria-label="Bezárás">&times;</button>
+            
+            <div class="nav-section">
+                <h3>Fejlesztési Területek</h3>
+                <ul class="nav-links">
+                    <li><a href="./Test.html" class="nav-link">
+                        <span class="nav-icon">💪</span>
+                        <span class="nav-text">Test</span>
+                    </a></li>
+                    <li><a href="./Arc.html" class="nav-link">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Arc</span>
+                    </a></li>
+                    <li><a href="./Mental.html" class="nav-link">
+                        <span class="nav-icon">🧠</span>
+                        <span class="nav-text">Mentál</span>
+                    </a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Fiók</h3>
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link" id="profile-btn">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profilom</span>
+                    </a></li>
+                    <li><a href="../../oldalak/main.html" class="nav-link">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Főoldal</span>
+                    </a></li>
+                    <li><a href="#" class="nav-link" id="logout-btn">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Kijelentkezés</span>
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <main class="mainwindow-content">
       <h2>Arc</h2>
@@ -135,7 +166,8 @@
       </div>
     </div>
 
-    <script src="../script.js"></script>
+    <script src="../../assets/js/script.js"></script>
     <script src="../../assets/js/auth.js"></script>
+    <script src="../../assets/js/dashboard.js"></script>
   </body>
 </html>

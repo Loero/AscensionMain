@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ascension - Vezérlőpult</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/main_style.css" />
+    <link rel="stylesheet" href="../assets/css/dashboard_style.css" />
+</head>
+<body class="page-loaded">
+
+    <!-- HEADER with Hamburger Menu -->
+    <header class="dashboard-header">
+        <div class="header-left">
+        </div>
+        
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Mobile Navigation Menu -->
+    <nav class="mobile-nav" id="mobile-nav">
+        <div class="nav-content">
+            <button class="nav-close" id="nav-close" aria-label="Bezárás">&times;</button>
+            
+            <div class="nav-section">
+                <h3>Fejlesztési Területek</h3>
+                <ul class="nav-links">
+                    <li><a href="./menupontok/Test.html" class="nav-link">
+                        <span class="nav-icon">💪</span>
+                        <span class="nav-text">Test</span>
+                    </a></li>
+                    <li><a href="./menupontok/Arc.html" class="nav-link">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Arc</span>
+                    </a></li>
+                    <li><a href="./menupontok/Mental.html" class="nav-link">
+                        <span class="nav-icon">🧠</span>
+                        <span class="nav-text">Mentál</span>
+                    </a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Fiók</h3>
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link" id="profile-btn">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profilom</span>
+                    </a></li>
+                    <li><a href="#" class="nav-link" id="logout-btn">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Kijelentkezés</span>
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1>Üdvözlünk az Ascension rendszerben!</h1>
+                <p>Kezdd el a fejlődést még ma. Válassz egy területet a bal felső menüből.</p>
+                
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <h3>0</h3>
+                        <p>Nap a rendszerben</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>0.0</h3>
+                        <p>PSL növekedés</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>0%</h3>
+                        <p>Heti kitöltés</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="daily-tasks">
+            <h2>Mai Feladatok</h2>
+            <div class="task-grid">
+                <div class="task-card">
+                    <div class="task-icon">💪</div>
+                    <h3>Edzés</h3>
+                    <p>Ma nincs edzés beállítva</p>
+                    <button class="task-btn">Beállítás</button>
+                </div>
+                <div class="task-card">
+                    <div class="task-icon">👤</div>
+                    <h3>Arcápolás</h3>
+                    <p>Rutin nincs beállítva</p>
+                    <button class="task-btn">Beállítás</button>
+                </div>
+                <div class="task-card">
+                    <div class="task-icon">🧠</div>
+                    <h3>Mentális</h3>
+                    <p>Nincs mentális gyakorlat</p>
+                    <button class="task-btn">Beállítás</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Profil Modal -->
+    <div id="profile-modal" class="auth-modal">
+      <div class="auth-modal-content profile-modal-content">
+        <button class="auth-close profile-close" aria-label="Bezárás">&times;</button>
+        
+        <h2 style="text-align: center; margin-bottom: 30px; font-family: 'Cinzel', serif; color: #f5f5f5;">Profilom</h2>
+        
+        <div id="profile-content">
+          <!-- Ide kerül a dinamikusan generált profil tartalom -->
+          <div style="text-align: center; padding: 40px; color: #bdbdbd;">
+            <p>Profil betöltése...</p>
+          </div>
+        </div>
+        
+        <button id="logout-btn-modal" class="logout-btn">Kijelentkezés</button>
+      </div>
+    </div>
+
+</body>
+    <script src="../assets/js/script.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+</html>

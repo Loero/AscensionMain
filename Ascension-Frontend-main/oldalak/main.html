@@ -89,35 +89,54 @@
             <p>Valódi eredmények valós emberektől, akik követték a rendszert.</p>
             
             <div class="transformation-grid">
-                <div class="transformation-card">
+                <div class="transformation-item">
                     <div class="before-after">
-                        <div class="before">Before</div>
-                        <div class="after">After</div>
+                        <div class="ba-frame">
+                            <img class="ba-img ba-before" src="../assets/img/before.png" alt="Before" />
+                            <img class="ba-img ba-after" src="../assets/img/after.png" alt="After" />
+                            <div class="ba-overlay"></div>
+                            <span class="ba-label ba-label-before" aria-hidden="true">Before</span>
+                            <span class="ba-label ba-label-after" aria-hidden="true">After</span>
+                        </div>
                     </div>
-                    <h3>Péter, 28</h3>
-                    <p>+2.1 PSL 6 hónap alatt</p>
+                    <div class="transformation-info">
+                        <h3>Péter, 28</h3>
+                        <p>+2.1 PSL 6 hónap alatt</p>
+                    </div>
                 </div>
-                <div class="transformation-card">
+                <div class="transformation-item">
                     <div class="before-after">
-                        <div class="before">Before</div>
-                        <div class="after">After</div>
+                        <div class="ba-frame">
+                            <img class="ba-img ba-before" src="../assets/img/beforedavid.png" alt="Before" />
+                            <img class="ba-img ba-after" src="../assets/img/afterdavid.png" alt="After" />
+                            <div class="ba-overlay"></div>
+                            <span class="ba-label ba-label-before" aria-hidden="true">Before</span>
+                            <span class="ba-label ba-label-after" aria-hidden="true">After</span>
+                        </div>
                     </div>
-                    <h3>Gábor, 35</h3>
-                    <p>+1.8 PSL 4 hónap alatt</p>
+                    <div class="transformation-info">
+                        <h3>Gábor, 35</h3>
+                        <p>+1.8 PSL 4 hónap alatt</p>
+                    </div>
                 </div>
-                <div class="transformation-card">
+                <div class="transformation-item">
                     <div class="before-after">
-                        <div class="before">Before</div>
-                        <div class="after">After</div>
+                        <div class="ba-frame">
+                            <img class="ba-img ba-before" src="../assets/img/before.png" alt="Before" />
+                            <img class="ba-img ba-after" src="../assets/img/after.png" alt="After" />
+                            <div class="ba-overlay"></div>
+                            <span class="ba-label ba-label-before" aria-hidden="true">Before</span>
+                            <span class="ba-label ba-label-after" aria-hidden="true">After</span>
+                        </div>
                     </div>
-                    <h3>Ádám, 24</h3>
-                    <p>+1.6 PSL 3 hónap alatt</p>
+                    <div class="transformation-info">
+                        <h3>Ádám, 24</h3>
+                        <p>+1.6 PSL 3 hónap alatt</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
-
-    
 
     <!-- YOUTUBE VIDEO SECTION -->
     <section class="video-section">
@@ -159,7 +178,7 @@
 
     <!-- GOMBOK SZEKCIÓ (scroll animáció nélkül) -->
     <section class="button-section">
-        <a href="#" id="cta-join" class="cta-join" aria-label="Csatlakozz a rendszerhez">Csatlakozz a rendszerhez</a>
+        <button id="cta-join" class="cta-join" aria-label="Csatlakozz a rendszerhez" onclick="document.getElementById('auth-modal').classList.add('active'); document.body.style.overflow='hidden';">Csatlakozz a rendszerhez</button>
     </section>    <!-- Bejelentkezés/Regisztráció Modal -->
     <div id="auth-modal" class="auth-modal">
       <div class="auth-modal-content">
