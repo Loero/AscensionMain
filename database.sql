@@ -41,3 +41,21 @@ CREATE TABLE IF NOT EXISTS food_entries (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_date (user_id, date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Edzés követési tábla
+CREATE TABLE IF NOT EXISTS workout_entries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    workout_type VARCHAR(100) NOT NULL,
+    exercise_name VARCHAR(200) NOT NULL,
+    duration_minutes INT NOT NULL,
+    calories_burned INT NOT NULL,
+    sets INT DEFAULT NULL,
+    reps INT DEFAULT NULL,
+    weight_kg DECIMAL(5,1) DEFAULT NULL,
+    notes TEXT DEFAULT NULL,
+    date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_date (user_id, date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

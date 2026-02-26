@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayProfileData(profile) {
         console.log('🎨 Profil megjelenítése:', profile);
         
-        const { user, alcohol, food } = profile;
+        const { user, alcohol, food, workout } = profile;
         
         // Dátum formázása
         const formatDate = (dateString) => {
@@ -373,6 +373,41 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
+        // Edzés statisztikák section
+        html += `
+            <div class="profile-section">
+                <h3>🏋️ Edzés statisztikák</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">🗓️ Ez a hét</div>
+                        <div class="stat-value">${Math.round(workout.week.totalDuration)} perc</div>
+                        <div class="stat-details">
+                            <p>${workout.week.entries} edzés</p>
+                            <p>${Math.round(workout.week.totalCalories)} kalória égetés</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">📅 Ez a hónap</div>
+                        <div class="stat-value">${Math.round(workout.month.totalDuration)} perc</div>
+                        <div class="stat-details">
+                            <p>${workout.month.entries} edzés</p>
+                            <p>${Math.round(workout.month.totalCalories)} kalória égetés</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">🏆 Összesen</div>
+                        <div class="stat-value">${Math.round(workout.total.totalDuration)} perc</div>
+                        <div class="stat-details">
+                            <p>${workout.total.entries} edzés</p>
+                            <p>${Math.round(workout.total.totalCalories)} kalória égetés</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
         // Legutóbbi alkohol bejegyzések section
         html += `
             <div class="profile-section">
@@ -448,6 +483,58 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>${Math.round(entry.calories)} kcal</span>
                             <span>F: ${entry.proteinG}g</span>
                             <span>SH: ${entry.carbsG}g</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+        }
+        
+        html += `</div>`;
+        
+        // Legutóbbi edzés bejegyzések section
+        html += `
+            <div class="profile-section">
+                <h3>🏋️ Legutóbbi edzés bejegyzések (5)</h3>
+        `;
+        
+        if (workout.recentEntries.length === 0) {
+            html += `
+                <div style="text-align: center; padding: 20px; color: #bdbdbd;">
+                    <p>Még nincsenek edzés bejegyzések.</p>
+                </div>
+            `;
+        } else {
+            html += `<div class="entries-list">`;
+            
+            workout.recentEntries.forEach(entry => {
+                const entryDate = new Date(entry.date);
+                const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                html += `
+                    <div class="entry-item">
+                        <div class="entry-header">
+                            <span class="entry-type">🏋️ ${entry.workoutType} - ${entry.exerciseName}</span>
+                            <span class="entry-date">${formattedDate}</span>
+                        </div>
+                        <div class="entry-details">
+                            <span>${entry.durationMinutes} perc</span>
+                            <span>${Math.round(entry.caloriesBurned)} kcal</span>
+                `;
+                
+                if (entry.sets && entry.reps) {
+                    html += `<span>${entry.sets}x${entry.reps}</span>`;
+                }
+                
+                if (entry.weightKg) {
+                    html += `<span>${entry.weightKg}kg</span>`;
+                }
+                
+                html += `
                         </div>
                     </div>
                 `;
