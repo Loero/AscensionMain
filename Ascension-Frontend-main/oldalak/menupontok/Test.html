@@ -173,6 +173,16 @@
         </div>
       </section>
 
+      <!-- 3. Edzésterv - közvetlenül a kalória javaslat alatt -->
+      <section
+        id="training-plan"
+        class="training-section"
+        style="display: none"
+      >
+        <h3>Személyre Szabott Edzésterv</h3>
+        <div id="plan-container"></div>
+      </section>
+
       <!-- 2/b. Napi Kalória Számláló (USDA adatbázissal) -->
       <section id="food-tracker" class="result-section">
         <h3>Napi Kalória Számláló</h3>
@@ -215,16 +225,6 @@
           <p id="total-carbs">Szénhidrát: 0 g</p>
         </div>
       </section>
-
-      <!-- 3. Edzésterv -->
-      <section
-        id="training-plan"
-        class="training-section"
-        style="display: none"
-      >
-        <h3>Személyre Szabott Edzésterv</h3>
-        <div id="plan-container"></div>
-      </section>
       <!-- 4. Progressive Overload Tracker -->
       <section
         id="tracker-section"
@@ -248,87 +248,6 @@
         </div>
       </section>
 
-      <!-- 5. Edzés Követő -->
-      <section id="workout-tracker" class="tracker-section">
-        <h3>Edzés Követő 🏋️</h3>
-        <p class="tracker-info">
-          Rögzítsd az edzéseidet és kövesd nyomon az előrehaladásod.
-        </p>
-
-        <div class="form-container">
-          <div class="form-group">
-            <label for="workout-type">Edzés típusa:</label>
-            <select id="workout-type">
-              <option value="">Válassz...</option>
-              <option value="Súlyzós edzés">Súlyzós edzés</option>
-              <option value="Kardió">Kardió</option>
-              <option value="HIIT">HIIT</option>
-              <option value="Futás">Futás</option>
-              <option value="Kerékpározás">Kerékpározás</option>
-              <option value="Úszás">Úszás</option>
-              <option value="Jóga">Jóga</option>
-              <option value="Crossfit">Crossfit</option>
-              <option value="Egyéb">Egyéb</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="exercise-name">Gyakorlat neve:</label>
-            <input type="text" id="exercise-name" placeholder="pl. Guggolás, Fekvenyomás, Húzódzkodás" />
-          </div>
-
-          <div class="form-group">
-            <label for="workout-duration">Időtartam (perc):</label>
-            <input type="number" id="workout-duration" placeholder="pl. 60" min="1" />
-          </div>
-
-          <div class="form-group">
-            <label for="calories-burned">Elégetett kalória:</label>
-            <input type="number" id="calories-burned" placeholder="pl. 350" min="1" />
-          </div>
-
-          <div class="form-group">
-            <label for="workout-sets">Sorozatok (opcionális):</label>
-            <input type="number" id="workout-sets" placeholder="pl. 4" min="1" />
-          </div>
-
-          <div class="form-group">
-            <label for="workout-reps">Ismétlések (opcionális):</label>
-            <input type="number" id="workout-reps" placeholder="pl. 12" min="1" />
-          </div>
-
-          <div class="form-group">
-            <label for="workout-weight">Súly kg (opcionális):</label>
-            <input type="number" id="workout-weight" placeholder="pl. 80" min="0" step="0.5" />
-          </div>
-
-          <div class="form-group">
-            <label for="workout-notes">Megjegyzések (opcionális):</label>
-            <textarea id="workout-notes" placeholder="pl. Új PR! Jól ment ma." rows="3"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="workout-date">Dátum:</label>
-            <input type="date" id="workout-date" />
-          </div>
-
-          <button class="btn-calculate" onclick="addWorkoutEntry()">
-            Hozzáadás
-          </button>
-        </div>
-
-        <div class="result-card">
-          <h4>Mai edzés bejegyzések <span id="workout-count" class="food-count">(0)</span></h4>
-          <div id="workout-list" class="food-list"></div>
-        </div>
-
-        <div class="result-card highlight">
-          <h4>Összesítés (ma)</h4>
-          <p id="workout-total-duration">Időtartam: 0 perc</p>
-          <p id="workout-total-calories">Elégetett kalória: 0 kcal</p>
-          <p id="workout-total-count">Edzések száma: 0</p>
-        </div>
-      </section>
 
       <!-- 6. Alkohol Követő -->
       <section id="alcohol-tracker" class="tracker-section">
@@ -367,11 +286,6 @@
               <label for="alcohol-percentage">Alkohol % (v/v):</label>
               <input type="number" id="alcohol-percentage" placeholder="pl. 5" min="0" max="100" step="0.1" />
             </div>
-          </div>
-
-          <div class="form-group">
-            <label for="alcohol-date">Dátum:</label>
-            <input type="date" id="alcohol-date" />
           </div>
 
           <button class="btn-calculate" onclick="addAlcoholEntry()">
@@ -464,5 +378,6 @@
     <script src="../../assets/js/script.js"></script>
     <script src="../../assets/js/auth.js"></script>
     <script src="../../assets/js/dashboard.js"></script>
+    <script src="../../assets/js/test.js"></script>
   </body>
 </html>

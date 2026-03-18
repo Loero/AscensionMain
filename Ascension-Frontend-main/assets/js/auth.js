@@ -145,7 +145,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.success) {
                     localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // Profil lekérése, hogy megkapjuk a createdAt mezőt is
+                    let userToStore = data.user;
+                    try {
+                        const profileRes = await fetch('http://localhost:3000/api/profile', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${data.token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const profileData = await profileRes.json();
+                        if (profileData.success && profileData.profile && profileData.profile.user) {
+                            userToStore = profileData.profile.user;
+                        }
+                    } catch (profileError) {
+                        console.error('❌ Profil lekérés login után nem sikerült:', profileError);
+                    }
+
+                    localStorage.setItem('user', JSON.stringify(userToStore));
 
                     alert(`✅ Sikeres bejelentkezés! Üdv, ${data.user.username}! 🎉`);
 
@@ -197,7 +216,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.success) {
                     localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // Profil lekérése, hogy megkapjuk a createdAt mezőt is
+                    let userToStore = data.user;
+                    try {
+                        const profileRes = await fetch('http://localhost:3000/api/profile', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${data.token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const profileData = await profileRes.json();
+                        if (profileData.success && profileData.profile && profileData.profile.user) {
+                            userToStore = profileData.profile.user;
+                        }
+                    } catch (profileError) {
+                        console.error('❌ Profil lekérés regisztráció után nem sikerült:', profileError);
+                    }
+
+                    localStorage.setItem('user', JSON.stringify(userToStore));
 
                     alert(`✅ Sikeres regisztráció! Üdv, ${data.user.username}! 🎉`);
 

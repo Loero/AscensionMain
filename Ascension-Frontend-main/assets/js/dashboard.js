@@ -3,7 +3,26 @@
    ================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-    
+
+    // Segédfüggvény: dátum formázása YYYY-MM-DD-re
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate() + 0).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    // Segédfüggvény: tetszőleges date érték normalizálása YYYY-MM-DD-re
+    function normalizeDate(value) {
+        if (!value) return null;
+        if (typeof value === "string") {
+            return value.slice(0, 10);
+        }
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return null;
+        return formatDate(d);
+    }
+
     // === HAMBURGER MENU FUNCTIONALITY ===
     const hamburgerMenu = document.getElementById("hamburger-menu");
     const mobileNav = document.getElementById("mobile-nav");
@@ -117,6 +136,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
+    // Segédfüggvény: hány napja van a rendszerben a felhasználó
+    function getDaysInSystem(user) {
+        if (!user || !user.createdAt) return 0;
+
+        const created = new Date(user.createdAt);
+        if (isNaN(created.getTime())) return 0;
+
+        const now = new Date();
+        const diffMs = now - created;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        // +1, hogy a regisztráció napja is számítson (min. 1 nap)
+        return Math.max(1, diffDays + 1);
+    }
+
     // === LOAD PROFILE DATA ===
     function loadProfileData() {
         const profileContent = document.getElementById("profile-content");
@@ -124,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // Get user data from localStorage
         const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const daysInSystem = getDaysInSystem(user);
         
         // Simulate loading profile data
         profileContent.innerHTML = `
@@ -136,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 <div class="profile-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
                     <div style="text-align: center; padding: 20px; background: rgba(43, 43, 43, 0.8); border-radius: 8px;">
-                        <h4 style="color: var(--accent); font-size: 1.5rem; margin-bottom: 5px;">0</h4>
+                        <h4 style="color: var(--accent); font-size: 1.5rem; margin-bottom: 5px;">${daysInSystem}</h4>
                         <p style="color: var(--muted); margin: 0;">Nap a rendszerben</p>
                     </div>
                     <div style="text-align: center; padding: 20px; background: rgba(43, 43, 43, 0.8); border-radius: 8px;">
@@ -182,19 +217,77 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     
-    // === UPDATE STATS (Simulated) ===
-    function updateStats() {
-        // This would normally fetch from backend
-        const daysInSystem = Math.floor(Math.random() * 30);
-        const pslGrowth = (Math.random() * 2).toFixed(1);
-        const weeklyProgress = Math.floor(Math.random() * 100);
+    // === NAPI AKTIVITÁS ÉS PSL SZÁMÍTÁS ===
+    async function calculateDailyStats(user) {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            return { weeklyCompletion: 0, pslGrowth: 0.0 };
+        }
+
+        const now = new Date();
+        const todayStr = formatDate(now);
+
+        const createdAtDate = user && user.createdAt ? new Date(user.createdAt) : null;
+
+        const headers = {
+            "Authorization": `Bearer ${token}`
+        };
+
+        try {
+            const [foodRes, workoutRes] = await Promise.all([
+                fetch(`http://localhost:3000/api/food/entries?date=${todayStr}`, { headers }),
+                fetch(`http://localhost:3000/api/workout?startDate=${todayStr}&endDate=${todayStr}`, { headers })
+            ]);
+
+            const foodData = await foodRes.json();
+            const workoutData = await workoutRes.json();
+
+            const foodEntries = foodData.success ? (foodData.entries || []) : [];
+            const workoutEntries = workoutData.success ? (workoutData.entries || []) : [];
+
+            // Ha van createdAt és ma előtte regisztrált, ne számoljuk (elméletben ilyen nincs, de védelem)
+            if (createdAtDate) {
+                const createdDay = new Date(createdAtDate.getFullYear(), createdAtDate.getMonth(), createdAtDate.getDate());
+                const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                if (currentDay < createdDay) {
+                    return { dailyCompletion: 0, pslGrowth: 0.0 };
+                }
+            }
+
+            // Napi feladatok: étel + edzés
+            let completedTasks = 0;
+            const maxTasks = 2; // 2 terület: étel + edzés
+
+            if (foodEntries.length > 0) completedTasks++;
+            if (workoutEntries.length > 0) completedTasks++;
+
+            const dailyCompletion = maxTasks === 0
+                ? 0
+                : Math.round((completedTasks / maxTasks) * 100);
+
+            // PSL növekedés: 0–2.0 skála a napi kitöltés alapján
+            const pslGrowth = parseFloat(((dailyCompletion / 100) * 2).toFixed(1));
+
+            return { dailyCompletion, pslGrowth };
+        } catch (err) {
+            console.error("❌ Napi statisztika számítás hiba:", err);
+            return { dailyCompletion: 0, pslGrowth: 0.0 };
+        }
+    }
+
+    // === UPDATE STATS ===
+    async function updateStats() {
+        // Felhasználó beolvasása a localStorage-ből
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const daysInSystem = getDaysInSystem(user);
+        const { dailyCompletion, pslGrowth } = await calculateDailyStats(user);
         
         // Update stat cards
         const statCards = document.querySelectorAll(".stat-card h3");
         if (statCards.length >= 3) {
             statCards[0].textContent = daysInSystem;
-            statCards[1].textContent = pslGrowth;
-            statCards[2].textContent = weeklyProgress + "%";
+            statCards[1].textContent = pslGrowth.toFixed(1);
+            statCards[2].textContent = dailyCompletion + "%";
         }
     }
     
