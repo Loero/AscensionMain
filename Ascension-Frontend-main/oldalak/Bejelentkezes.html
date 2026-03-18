@@ -339,9 +339,9 @@
 
           const data = await mockLogin(email, password);
 
-          // Success - save session and redirect
+          // Success - save session and redirect to dashboard
           saveUserSession(data.user);
-          window.location.href = "../oldalak/main.html";
+          window.location.href = "../oldalak/dashboard.html";
         } catch (error) {
           loginError.textContent =
             error.message || "Hiba történt a bejelentkezés során.";

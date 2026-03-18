@@ -17,181 +17,221 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ellenőrizzük van-e bejelentkezett felhasználó
     checkAuthStatus();
 
-    // "Csatlakozz a rendszerhez" → modal megnyitása
+    // "Csatlakozz a rendszerhez" → csak modal megnyitása (nincs azonnali redirect)
     if (ctaJoin) {
         ctaJoin.addEventListener('click', function(e) {
             e.preventDefault();
-            const user = JSON.parse(localStorage.getItem('user'));
-            
-            if (user) {
-                // User is logged in, redirect to dashboard
-                window.location.href = './dashboard.html';
-                return;
-            }
-            
-            authModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-            // Don't force tab switch - let user choose between login/register
-        });
-    }    // Modal megnyitása
-    authToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user) {
-            // Ha be van jelentkezve, profil modal megnyitása
-            openProfileModal();
-        } else {
-            // Ha nincs bejelentkezve, modal megnyitása
-            authModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    });
 
-    // Modal bezárása
-    authClose.addEventListener('click', function() {
-        authModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+            if (authModal) {
+                // Open modal
+                authModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                // Ha ez a CTA azt jelenti, hogy "csatlakozz", akkor alapból a regisztrációs tab legyen aktív
+                if (authTabs && authTabs.length) {
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    const regTab = Array.from(authTabs).find(t => t.getAttribute('data-tab') === 'register');
+                    const loginTab = Array.from(authTabs).find(t => t.getAttribute('data-tab') === 'login');
+                    if (regTab) regTab.classList.add('active');
+                    if (loginTab) loginTab.classList.remove('active');
+                }
+
+                if (registerForm && loginForm) {
+                    registerForm.classList.add('active');
+                    loginForm.classList.remove('active');
+                }
+
+                // Fókusz az első regisztrációs inputra
+                const regFirst = document.getElementById('register-username') || document.getElementById('register-email');
+                if (regFirst) regFirst.focus();
+            }
+        });
+    }
+
+    // Modal megnyitása (auth toggle) - csak ha van ilyen gomb az oldalon
+    if (authToggle) {
+        authToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                // Ha be van jelentkezve, profil modal megnyitása
+                if (typeof openProfileModal === 'function') openProfileModal();
+            } else {
+                // Ha nincs bejelentkezve, modal megnyitása
+                if (authModal) {
+                    authModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+        });
+    }
+
+    // Modal bezárása - csak ha van bezáró gomb
+    if (authClose) {
+        authClose.addEventListener('click', function() {
+            if (authModal) {
+                authModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
 
     // Modal bezárása kattintásra a háttéren
-    authModal.addEventListener('click', function(e) {
-        if (e.target === authModal) {
-            authModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-    });
+    if (authModal) {
+        authModal.addEventListener('click', function(e) {
+            if (e.target === authModal) {
+                authModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
 
     // Modal bezárása ESC billentyűre
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && authModal.classList.contains('active')) {
+        if (e.key === 'Escape' && authModal && authModal.classList.contains('active')) {
             authModal.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
     });
 
-    // Tab váltás
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            
-            authTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            if (tabName === 'login') {
-                loginForm.classList.add('active');
-                registerForm.classList.remove('active');
-            } else {
-                registerForm.classList.add('active');
-                loginForm.classList.remove('active');
+    // Tab váltás - csak ha vannak tabok és formok
+    if (authTabs && authTabs.length && loginForm && registerForm) {
+        authTabs.forEach(tab => {
+            // Ensure tab buttons do not act as submit buttons
+            if (tab.tagName === 'BUTTON') tab.setAttribute('type', 'button');
+
+            tab.addEventListener('click', function(e) {
+                // Prevent default to avoid scrolling to top if button would submit
+                if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+                const tabName = this.getAttribute('data-tab');
+
+                authTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                if (tabName === 'login') {
+                    loginForm.classList.add('active');
+                    registerForm.classList.remove('active');
+                } else {
+                    registerForm.classList.add('active');
+                    loginForm.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    // Bejelentkezési form submit - csak ha létezik a form
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const emailOrUsernameEl = document.getElementById('login-email');
+            const passwordEl = document.getElementById('login-password');
+            const emailOrUsername = emailOrUsernameEl ? emailOrUsernameEl.value : '';
+            const password = passwordEl ? passwordEl.value : '';
+
+            console.log('🔐 Bejelentkezés indítása...');
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emailOrUsername, password })
+                });
+
+                const data = await response.json();
+
+                console.log('Válasz:', data);
+
+                if (data.success) {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    alert(`✅ Sikeres bejelentkezés! Üdv, ${data.user.username}! 🎉`);
+
+                    loginForm.reset();
+                    if (authModal) authModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+
+                    updateAuthButton();
+
+                    // Redirect to dashboard after successful login
+                    window.location.href = './dashboard.html';
+                } else {
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (error) {
+                console.error('❌ Login hiba:', error);
+                alert('❌ Nem lehet kapcsolódni a backend-hez!\n\nEllenőrizd:\n- Backend fut? (npm start)\n- Port 3000 szabad?\n- MySQL elindul?');
             }
         });
-    });
-
-    // Bejelentkezési form submit
-    loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const emailOrUsername = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        
-        console.log('🔐 Bejelentkezés indítása...');
-        
-        try {
-            const response = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emailOrUsername, password })
-            });
-            
-            const data = await response.json();
-            
-            console.log('Válasz:', data);
-            
-            if (data.success) {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                alert(`✅ Sikeres bejelentkezés! Üdv, ${data.user.username}! 🎉`);
-                
-                loginForm.reset();
-                authModal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-                
-                updateAuthButton();
-                
-                // Redirect to dashboard after successful login
-                window.location.href = './dashboard.html';
-            } else {
-                alert(`❌ ${data.error}`);
-            }
-        } catch (error) {
-            console.error('❌ Login hiba:', error);
-            alert('❌ Nem lehet kapcsolódni a backend-hez!\n\nEllenőrizd:\n- Backend fut? (npm start)\n- Port 3000 szabad?\n- MySQL elindul?');
-        }
-    });
+    }
 
     // Regisztrációs form submit
-    registerForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('register-username').value;
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        const passwordConfirm = document.getElementById('register-password-confirm').value;
-        
-        if (password !== passwordConfirm) {
-            alert('❌ A jelszavak nem egyeznek!');
-            return;
-        }
-        
-        console.log('📝 Regisztráció indítása...', { username, email });
-        
-        try {
-            const response = await fetch(`${API_URL}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
-            
-            const data = await response.json();
-            
-            console.log('Válasz:', data);
-            
-            if (data.success) {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                alert(`✅ Sikeres regisztráció! Üdv, ${data.user.username}! 🎉`);
-                
-                registerForm.reset();
-                authModal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-                
-                updateAuthButton();
-                
-                // Redirect to dashboard after successful registration
-                window.location.href = './dashboard.html';
-            } else {
-                alert(`❌ ${data.error}`);
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                alert('❌ A jelszavak nem egyeznek!');
+                return;
             }
-        } catch (error) {
-            console.error('❌ Register hiba:', error);
-            alert('❌ Nem lehet kapcsolódni a backend-hez!\n\nEllenőrizd:\n- Backend fut? (npm start)\n- Port 3000 szabad?\n- MySQL elindult?');
-        }
-    });
-    
+
+            console.log('📝 Regisztráció indítása...', { username, email });
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                console.log('Válasz:', data);
+
+                if (data.success) {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    alert(`✅ Sikeres regisztráció! Üdv, ${data.user.username}! 🎉`);
+
+                    registerForm.reset();
+                    if (authModal) authModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+
+                    updateAuthButton();
+
+                    // Redirect to dashboard after successful registration
+                    window.location.href = './dashboard.html';
+                } else {
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (error) {
+                console.error('❌ Register hiba:', error);
+                alert('❌ Nem lehet kapcsolódni a backend-hez!\n\nEllenőrizd:\n- Backend fut? (npm start)\n- Port 3000 szabad?\n- MySQL elindult?');
+            }
+        });
+    }
+
     // Auth státusz ellenőrzése
     function checkAuthStatus() {
         const token = localStorage.getItem('authToken');
         // Mindig hívjuk meg az updateAuthButton-t, hogy a navbar láthatósága helyesen beálluljon
         updateAuthButton();
     }
-    
+
     // Auth gomb frissítése
     function updateAuthButton() {
         const user = JSON.parse(localStorage.getItem('user'));
-        
+
+        if (!authToggle) return; // Safely return if element missing on this page
+
         if (user) {
             // Bejelentkezett felhasználó: gomb szövegének frissítése
             authToggle.textContent = user.username;
@@ -204,21 +244,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========== PROFIL MODAL FUNKCIÓK ==========
-    
+
     // Profil modal megnyitása
     async function openProfileModal() {
         console.log('📊 Profil modal megnyitása...');
-        
+
         profileModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
+
         // Betöltés jelző megjelenítése
         profileContent.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #bdbdbd;">
                 <p>⏳ Profil adatok betöltése...</p>
             </div>
         `;
-        
+
         // Profil adatok lekérése
         await fetchProfileData();
     }
@@ -227,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchProfileData() {
         try {
             const token = localStorage.getItem('authToken');
-            
+
             if (!token) {
                 profileContent.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #ff6a6a;">
@@ -236,9 +276,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 return;
             }
-            
+
             console.log('🔄 Profil lekérés a backend-től...');
-            
+
             const response = await fetch('http://localhost:3000/api/profile', {
                 method: 'GET',
                 headers: {
@@ -246,11 +286,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             const data = await response.json();
-            
+
             console.log('✅ Profil válasz:', data);
-            
+
             if (data.success) {
                 displayProfileData(data.profile);
             } else {
@@ -274,9 +314,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Profil adatok megjelenítése
     function displayProfileData(profile) {
         console.log('🎨 Profil megjelenítése:', profile);
-        
+
         const { user, alcohol, food, workout } = profile;
-        
+
         // Dátum formázása
         const formatDate = (dateString) => {
             const date = new Date(dateString);
@@ -286,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 day: 'numeric' 
             });
         };
-        
+
         // Felhasználói adatok section
         let html = `
             <div class="profile-section">
@@ -298,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         // Alkohol Statisztikák section
         html += `
             <div class="profile-section">
@@ -334,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         // Étel Tracker Statisztikák section
         html += `
             <div class="profile-section">
@@ -372,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         // Edzés statisztikák section
         html += `
             <div class="profile-section">
@@ -407,13 +447,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         // Legutóbbi alkohol bejegyzések section
         html += `
             <div class="profile-section">
                 <h3>🍺 Legutóbbi alkohol bejegyzések (5)</h3>
         `;
-        
+
         if (alcohol.recentEntries.length === 0) {
             html += `
                 <div style="text-align: center; padding: 20px; color: #bdbdbd;">
@@ -422,14 +462,14 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else {
             html += `<div class="entries-list">`;
-            
+
             alcohol.recentEntries.forEach(entry => {
                 const entryDate = new Date(entry.date);
                 const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
                     month: 'short', 
                     day: 'numeric' 
                 });
-                
+
                 html += `
                     <div class="entry-item">
                         <div class="entry-header">
@@ -444,18 +484,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
             });
-            
+
             html += `</div>`;
         }
-        
+
         html += `</div>`;
-        
+
         // Legutóbbi étel bejegyzések section
         html += `
             <div class="profile-section">
                 <h3>🥗 Legutóbbi étel bejegyzések (5)</h3>
         `;
-        
+
         if (food.recentEntries.length === 0) {
             html += `
                 <div style="text-align: center; padding: 20px; color: #bdbdbd;">
@@ -464,14 +504,14 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else {
             html += `<div class="entries-list">`;
-            
+
             food.recentEntries.forEach(entry => {
                 const entryDate = new Date(entry.date);
                 const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
                     month: 'short', 
                     day: 'numeric' 
                 });
-                
+
                 html += `
                     <div class="entry-item">
                         <div class="entry-header">
@@ -487,18 +527,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
             });
-            
+
             html += `</div>`;
         }
-        
+
         html += `</div>`;
-        
+
         // Legutóbbi edzés bejegyzések section
         html += `
             <div class="profile-section">
                 <h3>🏋️ Legutóbbi edzés bejegyzések (5)</h3>
         `;
-        
+
         if (workout.recentEntries.length === 0) {
             html += `
                 <div style="text-align: center; padding: 20px; color: #bdbdbd;">
@@ -507,14 +547,14 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else {
             html += `<div class="entries-list">`;
-            
+
             workout.recentEntries.forEach(entry => {
                 const entryDate = new Date(entry.date);
                 const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
                     month: 'short', 
                     day: 'numeric' 
                 });
-                
+
                 html += `
                     <div class="entry-item">
                         <div class="entry-header">
@@ -525,26 +565,26 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>${entry.durationMinutes} perc</span>
                             <span>${Math.round(entry.caloriesBurned)} kcal</span>
                 `;
-                
+
                 if (entry.sets && entry.reps) {
                     html += `<span>${entry.sets}x${entry.reps}</span>`;
                 }
-                
+
                 if (entry.weightKg) {
                     html += `<span>${entry.weightKg}kg</span>`;
                 }
-                
+
                 html += `
                         </div>
                     </div>
                 `;
             });
-            
+
             html += `</div>`;
         }
-        
+
         html += `</div>`;
-        
+
         profileContent.innerHTML = html;
     }
 
