@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
         ctaJoin.addEventListener('click', function(e) {
             e.preventDefault();
 
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                // Ha már be van jelentkezve, ne nyissa meg a modalt, hanem dobja a dashboardra
+                window.location.href = './dashboard.html';
+                return;
+            }
+
             if (authModal) {
                 // Open modal
                 authModal.classList.add('active');
@@ -271,9 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!authToggle) return; // Safely return if element missing on this page
 
         if (user) {
-            // Bejelentkezett felhasználó: gomb szövegének frissítése
-            authToggle.textContent = user.username;
-            authToggle.title = 'Profil megtekintése';
+            // Bejelentkezett felhasználó: felhasználónév a jobb felső sarokban
+            authToggle.textContent = user.username || 'Fiókod';
+            authToggle.title = user.username ? `Fiókod (${user.username})` : 'Profil megtekintése';
         } else {
             // Nincs bejelentkezve: alapértelmezett szöveg
             authToggle.textContent = 'Bejelentkezés';
@@ -296,10 +303,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>⏳ Profil adatok betöltése...</p>
             </div>
         `;
-
         // Profil adatok lekérése
         await fetchProfileData();
     }
+
+    // Tegyük elérhetővé más scriptek számára is (pl. dashboard)
+    window.openProfileModal = openProfileModal;
 
     // Profil adatok lekérése a backend-től
     async function fetchProfileData() {
@@ -329,15 +338,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log('✅ Profil válasz:', data);
 
-            if (data.success) {
-                displayProfileData(data.profile);
-            } else {
+            if (!data.success) {
                 profileContent.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #ff6a6a;">
                         <p>❌ ${data.error || 'Profil betöltése sikertelen'}</p>
                     </div>
                 `;
+                return;
             }
+
+            // Napi kalória + mai étel bejegyzések lekérése az adott napra
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+            let dailyCalories = 0;
+            let dailyFoodEntries = [];
+            let dailyWorkoutMinutes = 0;
+            try {
+                const foodResp = await fetch(`http://localhost:3000/api/food/entries?date=${todayStr}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const foodData = await foodResp.json();
+                if (foodData.success && Array.isArray(foodData.entries)) {
+                    dailyCalories = foodData.entries.reduce((sum, entry) => sum + (entry.calories || 0), 0);
+
+                    // Alakítsuk a mai bejegyzéseket ugyanarra a formára, mint a profil recentEntries
+                    dailyFoodEntries = foodData.entries.map(entry => ({
+                        id: entry.id,
+                        foodName: entry.food_name,
+                        grams: entry.grams,
+                        calories: entry.calories,
+                        proteinG: typeof entry.protein_g === 'number' ? entry.protein_g.toFixed(1) : entry.protein_g,
+                        carbsG: typeof entry.carbs_g === 'number' ? entry.carbs_g.toFixed(1) : entry.carbs_g,
+                        date: entry.date,
+                        createdAt: entry.created_at
+                    }));
+                }
+
+                // Mai edzés percek lekérése
+                try {
+                    const workoutResp = await fetch(`http://localhost:3000/api/workout?startDate=${todayStr}&endDate=${todayStr}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    const workoutData = await workoutResp.json();
+                    if (workoutData.success && Array.isArray(workoutData.entries)) {
+                        dailyWorkoutMinutes = workoutData.entries.reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0);
+                    }
+                } catch (woErr) {
+                    console.error('❌ Napi edzés lekérési hiba:', woErr);
+                }
+            } catch (foodErr) {
+                console.error('❌ Napi kalória lekérési hiba:', foodErr);
+            }
+
+            displayProfileData(data.profile, dailyCalories, dailyFoodEntries, dailyWorkoutMinutes);
         } catch (error) {
             console.error('❌ Profil lekérési hiba:', error);
             profileContent.innerHTML = `
@@ -350,10 +413,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Profil adatok megjelenítése
-    function displayProfileData(profile) {
+    function displayProfileData(profile, dailyCalories, dailyFoodEntries = [], dailyWorkoutMinutes = 0) {
         console.log('🎨 Profil megjelenítése:', profile);
 
-        const { user, alcohol, food, workout } = profile;
+        const { user, food, workout, personal } = profile;
 
         // Dátum formázása
         const formatDate = (dateString) => {
@@ -365,191 +428,235 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         };
 
-        // Felhasználói adatok section
+        const formatShortDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
+        };
+
+        const mapGoal = (goal) => {
+            if (!goal) return '-';
+            if (goal === 'deficit') return 'Fogyás';
+            if (goal === 'maintain') return 'Súlytartás';
+            if (goal === 'surplus') return 'Tömegnövelés';
+            return goal;
+        };
+
+        const mapExperience = (exp) => {
+            if (!exp) return '-';
+            if (exp === 'beginner') return 'Kezdő (0-1 év)';
+            if (exp === 'intermediate') return 'Haladó (1-3 év)';
+            if (exp === 'advanced') return 'Profi (3+ év)';
+            return exp;
+        };
+
+        const mapActivity = (mult) => {
+            if (!mult) return '-';
+            const m = parseFloat(mult);
+            if (m === 1.2) return 'Ülő életmód';
+            if (m === 1.375) return 'Könnyű aktivitás (1-3 nap/hét)';
+            if (m === 1.55) return 'Közepes aktivitás (3-5 nap/hét)';
+            if (m === 1.725) return 'Aktív (6-7 nap/hét)';
+            if (m === 1.9) return 'Nagyon aktív (napi 2x edzés)';
+            return `Aktivitási szorzó: ${m}`;
+        };
+
+        // Tabs + két nézet: Statisztikák / Adatok
         let html = `
-            <div class="profile-section">
-                <h3>👤 Felhasználói adatok</h3>
-                <div class="profile-info">
-                    <p><strong>Felhasználónév:</strong> ${user.username}</p>
-                    <p><strong>E-mail:</strong> ${user.email}</p>
-                    <p><strong>Regisztráció dátuma:</strong> ${formatDate(user.createdAt)}</p>
-                </div>
+            <div class="profile-tabs">
+                <button id="profile-show-stats" class="profile-mode-btn active">Statisztikák</button>
+                <button id="profile-show-data" class="profile-mode-btn">Adatok</button>
             </div>
-        `;
 
-        // Alkohol Statisztikák section
-        html += `
-            <div class="profile-section">
-                <h3>🍺 Alkoholfogyasztás statisztikák</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">🗓️ Ez a hét</div>
-                        <div class="stat-value">${Math.round(alcohol.week.totalMl)} ml</div>
-                        <div class="stat-details">
-                            <p>${alcohol.week.entries} bejegyzés</p>
-                            <p>${Math.round(alcohol.week.totalCalories)} kalória</p>
+            <div id="profile-stats-view">
+                <div class="profile-section">
+                    <h3>👤 Felhasználói adatok</h3>
+                    <div class="profile-info">
+                        <p><strong>Felhasználónév:</strong> ${user.username}</p>
+                        <p><strong>E-mail:</strong> ${user.email}</p>
+                        <p><strong>Regisztráció dátuma:</strong> ${formatDate(user.createdAt)}</p>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>🍎 Kalória számláló statisztikák</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-title">📅 Napi kalória bevitel</div>
+                            <div class="stat-value">${Math.round(dailyCalories)} kcal</div>
+                            <div class="stat-details">
+                                <p>${food.week.entries} heti bejegyzés</p>
+                                <p>${food.week.totalProtein}g fehérje (hét)</p>
+                                <p>${food.week.totalCarbs}g szénhidrát (hét)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">🗓️ Heti kalória bevitel</div>
+                            <div class="stat-value">${Math.round(food.week.totalCalories)} kcal</div>
+                            <div class="stat-details">
+                                <p>${food.week.entries} bejegyzés</p>
+                                <p>${food.week.totalProtein}g fehérje</p>
+                                <p>${food.week.totalCarbs}g szénhidrát</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">🏆 Összesen</div>
+                            <div class="stat-value">${Math.round(food.total.totalCalories)} kcal</div>
+                            <div class="stat-details">
+                                <p>${food.total.entries} bejegyzés</p>
+                                <p>${food.total.totalProtein}g fehérje</p>
+                                <p>${food.total.totalCarbs}g szénhidrát</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">📅 Ez a hónap</div>
-                        <div class="stat-value">${Math.round(alcohol.month.totalMl)} ml</div>
-                        <div class="stat-details">
-                            <p>${alcohol.month.entries} bejegyzés</p>
-                            <p>${Math.round(alcohol.month.totalCalories)} kalória</p>
-                        </div>
+                    <div style="margin-top: 18px; border-top: 1px solid #333; padding-top: 14px;">
+                        <h4 style="margin: 0 0 10px 0; color: #f7d774;">Mai bevitt ételek</h4>
+                        ${dailyFoodEntries.length === 0
+                          ? `<div style="text-align: center; padding: 12px; color: #bdbdbd;"><p>Még nincsenek mai étel bejegyzések.</p></div>`
+                          : `<div class="entries-list">${dailyFoodEntries.map(entry => {
+                              const formattedDate = formatShortDate(entry.date);
+                              return `
+                                <div class="entry-item">
+                                    <div class="entry-header">
+                                        <span class="entry-type">🥗 ${entry.foodName}</span>
+                                        <span class="entry-date">${formattedDate}</span>
+                                    </div>
+                                    <div class="entry-details">
+                                        <span>${entry.grams}g</span>
+                                        <span>${Math.round(entry.calories)} kcal</span>
+                                        <span>F: ${entry.proteinG}g</span>
+                                        <span>SH: ${entry.carbsG}g</span>
+                                    </div>
+                                </div>
+                              `;
+                            }).join('')}</div>`}
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">🏆 Összesen</div>
-                        <div class="stat-value">${Math.round(alcohol.total.totalMl)} ml</div>
-                        <div class="stat-details">
-                            <p>${alcohol.total.entries} bejegyzés</p>
-                            <p>${Math.round(alcohol.total.totalCalories)} kalória</p>
-                            <p>Átlag: ${alcohol.total.avgAlcoholPercentage}% alkohol</p>
+                </div>
+
+                <div class="profile-section">
+                    <h3>🏋️ Edzés statisztikák</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-title">📅 Ma</div>
+                            <div class="stat-value">${Math.round(dailyWorkoutMinutes)} perc</div>
+                            <div class="stat-details">
+                                <p>Mai összes edzésidő</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">🗓️ Heti összes perc</div>
+                            <div class="stat-value">${Math.round(workout.week.totalDuration)} perc</div>
+                            <div class="stat-details">
+                                <p>${workout.week.entries} edzés</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">🏆 Összesen</div>
+                            <div class="stat-value">${Math.round(workout.total.totalDuration)} perc</div>
+                            <div class="stat-details">
+                                <p>${workout.total.entries} edzés</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
         `;
 
-        // Étel Tracker Statisztikák section
-        html += `
-            <div class="profile-section">
-                <h3>🍎 Kalória számláló statisztikák</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">🗓️ Ez a hét</div>
-                        <div class="stat-value">${Math.round(food.week.totalCalories)} kcal</div>
-                        <div class="stat-details">
-                            <p>${food.week.entries} bejegyzés</p>
-                            <p>${food.week.totalProtein}g fehérje</p>
-                            <p>${food.week.totalCarbs}g szénhidrát</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">📅 Ez a hónap</div>
-                        <div class="stat-value">${Math.round(food.month.totalCalories)} kcal</div>
-                        <div class="stat-details">
-                            <p>${food.month.entries} bejegyzés</p>
-                            <p>${food.month.totalProtein}g fehérje</p>
-                            <p>${food.month.totalCarbs}g szénhidrát</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">🏆 Összesen</div>
-                        <div class="stat-value">${Math.round(food.total.totalCalories)} kcal</div>
-                        <div class="stat-details">
-                            <p>${food.total.entries} bejegyzés</p>
-                            <p>${food.total.totalProtein}g fehérje</p>
-                            <p>${food.total.totalCarbs}g szénhidrát</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Edzés statisztikák section
-        html += `
-            <div class="profile-section">
-                <h3>🏋️ Edzés statisztikák</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">🗓️ Ez a hét</div>
-                        <div class="stat-value">${Math.round(workout.week.totalDuration)} perc</div>
-                        <div class="stat-details">
-                            <p>${workout.week.entries} edzés</p>
-                            <p>${Math.round(workout.week.totalCalories)} kalória égetés</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">📅 Ez a hónap</div>
-                        <div class="stat-value">${Math.round(workout.month.totalDuration)} perc</div>
-                        <div class="stat-details">
-                            <p>${workout.month.entries} edzés</p>
-                            <p>${Math.round(workout.month.totalCalories)} kalória égetés</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">🏆 Összesen</div>
-                        <div class="stat-value">${Math.round(workout.total.totalDuration)} perc</div>
-                        <div class="stat-details">
-                            <p>${workout.total.entries} edzés</p>
-                            <p>${Math.round(workout.total.totalCalories)} kalória égetés</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Legutóbbi alkohol bejegyzések section
-        html += `
-            <div class="profile-section">
-                <h3>🍺 Legutóbbi alkohol bejegyzések (5)</h3>
-        `;
-
-        if (alcohol.recentEntries.length === 0) {
-            html += `
-                <div style="text-align: center; padding: 20px; color: #bdbdbd;">
-                    <p>Még nincsenek alkohol bejegyzések.</p>
-                </div>
-            `;
-        } else {
-            html += `<div class="entries-list">`;
-
-            alcohol.recentEntries.forEach(entry => {
-                const entryDate = new Date(entry.date);
-                const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-
-                html += `
-                    <div class="entry-item">
-                        <div class="entry-header">
-                            <span class="entry-type">🍷 ${entry.drinkType}</span>
-                            <span class="entry-date">${formattedDate}</span>
-                        </div>
-                        <div class="entry-details">
-                            <span>${entry.amountMl} ml</span>
-                            <span>${entry.alcoholPercentage}%</span>
-                            <span>${Math.round(entry.calories)} kcal</span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `</div>`;
-        }
-
+        // stats-view lezárása
         html += `</div>`;
 
-        // Legutóbbi étel bejegyzések section
+        // === ADATOK NÉZET ===
         html += `
-            <div class="profile-section">
-                <h3>🥗 Legutóbbi étel bejegyzések (5)</h3>
+            <div id="profile-data-view" style="display:none;">
+                <div class="profile-section">
+                    <h3>📋 Személyes adatok (Tervhez)</h3>
+                    <div class="profile-info">
+                        <p><strong>Életkor:</strong> ${personal && personal.age ? personal.age + ' év' : '– nincs megadva –'}</p>
+                        <p><strong>Súly:</strong> ${personal && personal.weightKg ? personal.weightKg + ' kg' : '– nincs megadva –'}</p>
+                        <p><strong>Magasság:</strong> ${personal && personal.heightCm ? personal.heightCm + ' cm' : '– nincs megadva –'}</p>
+                        <p><strong>Nem:</strong> ${personal && personal.gender ? (personal.gender === 'male' ? 'Férfi' : personal.gender === 'female' ? 'Nő' : personal.gender) : '– nincs megadva –'}</p>
+                        <p><strong>Aktivitás:</strong> ${personal && personal.activityMultiplier ? mapActivity(personal.activityMultiplier) : '– nincs megadva –'}</p>
+                        <p><strong>Cél:</strong> ${personal ? mapGoal(personal.goal) : '-'}</p>
+                        <p><strong>Edzés tapasztalat:</strong> ${personal ? mapExperience(personal.experience) : '-'}</p>
+                        ${personal && personal.updatedAt ? `<p><strong>Utoljára frissítve:</strong> ${formatDate(personal.updatedAt)}</p>` : ''}
+                    </div>
+                    <p style="font-size: 13px; color: #bdbdbd; margin-top: 8px;">Ezek az adatok a Test oldalon megadott űrlap alapján kerülnek mentésre.</p>
+                </div>
+
+                <div class="profile-section">
+                    <h3>💪 Generált Edzésterv</h3>
+                    <div class="profile-info">
+                        ${(() => {
+                            try {
+                                const planData = JSON.parse(localStorage.getItem('ascension_training_plan_v1'));
+                                if (!planData) throw new Error('No plan');
+                                
+                                const experienceNames = {
+                                    'beginner': 'Kezdő',
+                                    'intermediate': 'Haladó',
+                                    'advanced': 'Profi'
+                                };
+                                
+                                const goalNames = {
+                                    'deficit': 'Fogyás',
+                                    'surplus': 'Tömegnövelés',
+                                    'maintain': 'Tartás'
+                                };
+                                
+                                const exp = experienceNames[planData.experience] || planData.experience;
+                                const gol = goalNames[planData.goal] || planData.goal;
+
+                                if (planData.planHtml) {
+                                    const goalAdvice = planData.goalAdviceHtml || '';
+                                    return `
+                                        <p><strong>Szint:</strong> ${exp}</p>
+                                        <p><strong>Cél:</strong> ${gol}</p>
+                                        <div style="margin-top: 12px;">
+                                            ${planData.planHtml}
+                                            ${goalAdvice}
+                                        </div>
+                                    `;
+                                }
+
+                                let fallbackHtml = '';
+                                if (planData.planStructure && Object.keys(planData.planStructure).length > 0) {
+                                    fallbackHtml = Object.entries(planData.planStructure)
+                                        .map(([day, exercises]) => `
+                                            <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                                                <p style="margin: 0 0 6px 0;"><strong>${day}</strong></p>
+                                                <p style="margin: 0; color: #ddd;">${Array.isArray(exercises) ? exercises.join(', ') : '-'}</p>
+                                            </div>
+                                        `)
+                                        .join('');
+                                } else {
+                                    fallbackHtml = '<p style="color: #bdbdbd;">A részletes terv még nincs mentve.</p>';
+                                }
+
+                                return `<p><strong>Szint:</strong> ${exp}</p><p><strong>Cél:</strong> ${gol}</p>${fallbackHtml}`;
+                            } catch (e) {
+                                return '<p style="color: #bdbdbd;">Még nincs generált edzésterv.</p>';
+                            }
+                        })()}
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>🥗 Részletes étkezés (utóbbi bejegyzések)</h3>
         `;
 
-        if (food.recentEntries.length === 0) {
+        if (!food.recentEntries || food.recentEntries.length === 0) {
             html += `
                 <div style="text-align: center; padding: 20px; color: #bdbdbd;">
-                    <p>Még nincsenek étel bejegyzések.</p>
+                    <p>Még nincsenek mentett étel bejegyzéseid.</p>
                 </div>
             `;
         } else {
             html += `<div class="entries-list">`;
 
             food.recentEntries.forEach(entry => {
-                const entryDate = new Date(entry.date);
-                const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-
+                const formattedDate = formatShortDate(entry.date);
                 html += `
                     <div class="entry-item">
                         <div class="entry-header">
@@ -569,50 +676,34 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `</div>`;
         }
 
-        html += `</div>`;
+        html += `</div>`; // étel profile-section lezárás
 
-        // Legutóbbi edzés bejegyzések section
         html += `
-            <div class="profile-section">
-                <h3>🏋️ Legutóbbi edzés bejegyzések (5)</h3>
+                <div class="profile-section">
+                    <h3>🏋️ Részletes edzés (utóbbi bejegyzések)</h3>
         `;
 
-        if (workout.recentEntries.length === 0) {
+        if (!workout.recentEntries || workout.recentEntries.length === 0) {
             html += `
                 <div style="text-align: center; padding: 20px; color: #bdbdbd;">
-                    <p>Még nincsenek edzés bejegyzések.</p>
+                    <p>Még nincsenek mentett edzés bejegyzéseid.</p>
                 </div>
             `;
         } else {
             html += `<div class="entries-list">`;
 
             workout.recentEntries.forEach(entry => {
-                const entryDate = new Date(entry.date);
-                const formattedDate = entryDate.toLocaleDateString('hu-HU', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-
+                const formattedDate = formatShortDate(entry.date);
                 html += `
                     <div class="entry-item">
                         <div class="entry-header">
-                            <span class="entry-type">🏋️ ${entry.workoutType} - ${entry.exerciseName}</span>
+                            <span class="entry-type">🏋️ ${entry.exerciseName || entry.workoutType}</span>
                             <span class="entry-date">${formattedDate}</span>
                         </div>
                         <div class="entry-details">
                             <span>${entry.durationMinutes} perc</span>
-                            <span>${Math.round(entry.caloriesBurned)} kcal</span>
-                `;
-
-                if (entry.sets && entry.reps) {
-                    html += `<span>${entry.sets}x${entry.reps}</span>`;
-                }
-
-                if (entry.weightKg) {
-                    html += `<span>${entry.weightKg}kg</span>`;
-                }
-
-                html += `
+                            ${entry.weightKg ? `<span>${entry.weightKg} kg</span>` : ''}
+                            ${entry.sets ? `<span>${entry.sets}×${entry.reps || '-'} ismétlés</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -621,9 +712,47 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `</div>`;
         }
 
-        html += `</div>`;
+        html += `
+                </div>
+                
+                <div class="profile-section" style="border-top: 1px solid #444; padding-top: 20px; margin-top: 20px;">
+                    <button id="delete-profile-data-btn" style="background-color: #d32f2f; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                        🗑️ Adatok Törlése és Újrakezdés
+                    </button>
+                    <p style="font-size: 12px; color: #bdbdbd; margin-top: 10px;">Ez törli az összes mentett személyes adatodat és edzéstervedet. Új adatok megadása után újra létre kell generálnod az edzéstervet.</p>
+                </div>
+            </div>
+        `; // profile-data-view lezárás
 
         profileContent.innerHTML = html;
+
+        // Tab váltás események
+        const statsBtn = document.getElementById('profile-show-stats');
+        const dataBtn = document.getElementById('profile-show-data');
+        const statsView = document.getElementById('profile-stats-view');
+        const dataView = document.getElementById('profile-data-view');
+
+        if (statsBtn && dataBtn && statsView && dataView) {
+            statsBtn.addEventListener('click', () => {
+                statsView.style.display = '';
+                dataView.style.display = 'none';
+                statsBtn.classList.add('active');
+                dataBtn.classList.remove('active');
+            });
+
+            dataBtn.addEventListener('click', () => {
+                statsView.style.display = 'none';
+                dataView.style.display = '';
+                dataBtn.classList.add('active');
+                statsBtn.classList.remove('active');
+            });
+
+            // Delete button
+            const deleteBtn = document.getElementById('delete-profile-data-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', deleteProfileData);
+            }
+        }
     }
 
     // Profil modal bezárása
@@ -665,3 +794,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Profil adatok törlésére
+async function deleteProfileData() {
+    if (!confirm('⚠️ Biztosan törölni szeretnéd az összes adatodat? Ez nem vonható vissza!\n\nTöröl:\n- Személyes adatok (kor, súly, magasság, stb.)\n- Generált edzésterv\n- Étel és edzés előzmények')) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('❌ Bejelentkezés szükséges!');
+            return;
+        }
+
+        // Adatok törlése a backendről
+        const response = await fetch('http://localhost:3000/api/profile/details', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Backend hiba: ' + response.statusText);
+        }
+
+        // localStorage adatok törlése
+        localStorage.removeItem('ascension_training_plan_v1');
+        localStorage.removeItem('ascension_workouts_v1');
+
+        alert('✅ Mind az összes adatod sikeresen törölve lett. Megnyíl a Test oldal az új adatok megadásához.');
+        
+        // Átirányítás a test oldalra
+        window.location.href = './test.html';
+
+    } catch (error) {
+        console.error('Hiba az adatok törlésénél:', error);
+        alert('❌ Hiba az adatok törlésénél: ' + error.message);
+    }
+}

@@ -49,6 +49,38 @@ await connectDatabase();
 
 const JWT_SECRET = 'ascension_secret_2026';
 
+/* ====== AUTH MIDDLEWARE ====== */
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: 'Nincs megadva hitelesítési token. Jelentkezz be újra.'
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('❌ JWT verify hiba:', err.message);
+      return res.status(403).json({
+        success: false,
+        error: 'Érvénytelen vagy lejárt token. Jelentkezz be újra.'
+      });
+    }
+
+    // req.user-be rakjuk a fontos adatokat
+    req.user = {
+      userId: decoded.userId,
+      username: decoded.username,
+      email: decoded.email
+    };
+
+    next();
+  });
+}
+
 /* ====== CLOUDINARY ====== */
 cloudinary.config({
   cloud_name: "dpgrckgpd",
@@ -141,192 +173,11 @@ function generateAdvice(rawResults) {
   }
 
   if (advice.length === 0) {
-    advice.push("A bőröd jó állapotban van, tartsd a rutinod.");
+    advice.push("A bőröd összképe jó állapotban van. Folytasd a jelenlegi rutint.");
   }
 
   return advice;
 }
-
-/* ====== API ====== */
-app.post("/analyze", upload.single("image"), async (req, res) => {
-  try {
-    // 1. feltöltés Cloudinary-be
-    const uploadRes = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: "image",
-      transformation: [{ quality: "auto:best" }, { fetch_format: "jpg" }],
-    });
-
-    const imageUrl = uploadRes.secure_url;
-
-    // 2. YouCam indítás
-    const taskId = await startTask(imageUrl);
-    if (!taskId) throw new Error("No task id from YouCam");
-
-    // 3. YouCam poll
-    const rawResults = await pollTask(taskId);
-
-    // 4. tanács
-    const advice = generateAdvice(rawResults);
-
-    // 5. letisztult eredmény JSON-hoz
-    const cleanedResults = {};
-
-    rawResults.output.forEach((item) => {
-      if (item.type === "oiliness") cleanedResults.oiliness = item.ui_score;
-      if (item.type === "acne") cleanedResults.acne = item.ui_score;
-      if (item.type === "all") cleanedResults.overall = item.score;
-    });
-
-    // ✅ SIKERES VÁLASZ A FRONTENDNEK
-    res.json({
-      success: true,
-      results: cleanedResults,
-      advice: advice,
-    });
-  } catch (err) {
-    console.error("BACKEND ERROR:", err);
-    res.status(500).json({ error: "Elemzés sikertelen" });
-  }
-});
-
-/* ====== NUTRITION SEARCH (USDA FDC) ====== */
-app.get("/nutrition/search", async (req, res) => {
-  try {
-    const query = (req.query.query || "").trim();
-    if (!query) {
-      return res
-        .status(400)
-        .json({ error: "Hiányzó keresési kifejezés (query)" });
-    }
-
-    if (!FDC_API_KEY || FDC_API_KEY === "YOUR_FDC_API_KEY") {
-      return res
-        .status(500)
-        .json({ error: "Hiányzó FDC API kulcs (FDC_API_KEY)" });
-    }
-
-    const url = new URL("https://api.nal.usda.gov/fdc/v1/foods/search");
-    url.searchParams.set("query", query);
-    url.searchParams.append("dataType", "Foundation");
-    url.searchParams.append("dataType", "SR Legacy");
-    url.searchParams.set("pageSize", "10");
-    url.searchParams.set("api_key", FDC_API_KEY);
-
-    const resp = await fetch(url.toString());
-    const data = await resp.json();
-
-    const items = (data.foods || [])
-      .map((food) => {
-        const nutrients = {};
-        (food.foodNutrients || []).forEach((n) => {
-          // Map USDA nutrient IDs to fields
-          // 1008 Energy (kcal), 1003 Protein (g), 1005 Carbohydrate (g)
-          if (n.nutrientId === 1008) nutrients.energyKcal = n.value;
-          if (n.nutrientId === 1003) nutrients.proteinG = n.value;
-          if (n.nutrientId === 1005) nutrients.carbG = n.value;
-        });
-
-        return {
-          fdcId: food.fdcId,
-          description: food.description,
-          dataType: food.dataType,
-          brandOwner: food.brandOwner || null,
-          nutrients,
-        };
-      })
-      .filter(
-        (item) => item.nutrients && item.nutrients.energyKcal !== undefined
-      );
-
-    res.json({ items });
-  } catch (err) {
-    console.error("/nutrition/search error:", err);
-    res.status(500).json({ error: "Keresés sikertelen" });
-  }
-});
-
-/* ====== JWT MIDDLEWARE ====== */
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  
-  if (!token) {
-    return res.status(401).json({ success: false, error: "Token hiányzik" });
-  }
-  
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ success: false, error: "Érvénytelen token" });
-    }
-    req.user = user;
-    next();
-  });
-}
-
-/* ====== AUTH ENDPOINTS ====== */
-
-// Regisztráció
-app.post("/api/auth/register", async (req, res) => {
-  try {
-    // Ellenőrizzük hogy van-e DB kapcsolat
-    if (!db) {
-      return res.status(500).json({ 
-        success: false, 
-        error: "Adatbázis kapcsolat nincs! Ellenőrizd a backend-et!" 
-      });
-    }
-    
-    const { username, email, password } = req.body;
-    
-    console.log('📝 Regisztráció kísérlet:', { username, email });
-    
-    if (!username || !email || !password) {
-      return res.status(400).json({ success: false, error: "Minden mező kitöltése kötelező" });
-    }
-    
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, error: "A jelszónak legalább 6 karakter hosszúnak kell lennie" });
-    }
-    
-    // Email ellenőrzés
-    const [existing] = await db.execute(
-      'SELECT id FROM users WHERE email = ? OR username = ?',
-      [email, username]
-    );
-    
-    if (existing.length > 0) {
-      return res.status(400).json({ success: false, error: "Ez az email vagy felhasználónév már foglalt" });
-    }
-    
-    // Jelszó hash
-    const passwordHash = await bcrypt.hash(password, 10);
-    
-    // Beszúrás
-    const [result] = await db.execute(
-      'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-      [username, email, passwordHash]
-    );
-    
-    console.log('✅ Regisztráció sikeres! User ID:', result.insertId);
-    
-    // Token
-    const token = jwt.sign(
-      { userId: result.insertId, username, email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-    
-    res.json({
-      success: true,
-      message: "Sikeres regisztráció",
-      token,
-      user: { id: result.insertId, username, email }
-    });
-  } catch (error) {
-    console.error("❌ Register error:", error);
-    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
-  }
-});
 
 // Bejelentkezés
 app.post("/api/auth/login", async (req, res) => {
@@ -389,7 +240,7 @@ app.post("/api/auth/login", async (req, res) => {
 
 /* ====== PROFILE ENDPOINT ====== */
 
-// Profil adatok lekérése (felhasználó + alkohol statisztikák)
+// Profil adatok lekérése (felhasználó + statisztikák + személyes adatok)
 app.get("/api/profile", authenticateToken, async (req, res) => {
   try {
     if (!db) {
@@ -416,57 +267,43 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
     }
     
     const user = users[0];
-    
-    // 2. Heti statisztikák (ez a hét)
-    const [weekStats] = await db.execute(`
-      SELECT 
-        COUNT(*) as entries,
-        COALESCE(SUM(amount_ml), 0) as total_ml,
-        COALESCE(SUM(calories), 0) as total_calories
-      FROM alcohol_entries 
-      WHERE user_id = ? 
-      AND YEARWEEK(date, 1) = YEARWEEK(CURDATE(), 1)
-    `, [userId]);
-    
-    // 3. Havi statisztikák (ez a hónap)
-    const [monthStats] = await db.execute(`
-      SELECT 
-        COUNT(*) as entries,
-        COALESCE(SUM(amount_ml), 0) as total_ml,
-        COALESCE(SUM(calories), 0) as total_calories
-      FROM alcohol_entries 
-      WHERE user_id = ? 
-      AND YEAR(date) = YEAR(CURDATE())
-      AND MONTH(date) = MONTH(CURDATE())
-    `, [userId]);
-    
-    // 4. Összes statisztika
-    const [totalStats] = await db.execute(`
-      SELECT 
-        COUNT(*) as entries,
-        COALESCE(SUM(amount_ml), 0) as total_ml,
-        COALESCE(SUM(calories), 0) as total_calories,
-        COALESCE(AVG(alcohol_percentage), 0) as avg_alcohol_percentage
-      FROM alcohol_entries 
-      WHERE user_id = ?
-    `, [userId]);
-    
-    // 5. Legutóbbi 5 bejegyzés
-    const [recentEntries] = await db.execute(`
-      SELECT 
-        id,
-        drink_type,
-        amount_ml,
-        alcohol_percentage,
-        calories,
-        date,
-        created_at
-      FROM alcohol_entries 
-      WHERE user_id = ?
-      ORDER BY date DESC, created_at DESC
-      LIMIT 5
-    `, [userId]);
-    
+
+    // 2. Személyes adatok lekérése (ha vannak mentve)
+    let personal = null;
+    try {
+      const [personalRows] = await db.execute(`
+        SELECT 
+          age,
+          weight_kg,
+          height_cm,
+          gender,
+          activity_multiplier,
+          goal,
+          experience,
+          updated_at
+        FROM user_profile
+        WHERE user_id = ?
+      `, [userId]);
+
+      if (personalRows.length > 0) {
+        const p = personalRows[0];
+        personal = {
+          age: p.age,
+          weightKg: p.weight_kg,
+          heightCm: p.height_cm,
+          gender: p.gender,
+          activityMultiplier: p.activity_multiplier,
+          goal: p.goal,
+          experience: p.experience,
+          updatedAt: p.updated_at
+        };
+      }
+    } catch (personalErr) {
+      console.error('❌ Személyes profil adatok lekérési hiba:', personalErr);
+    }
+
+    // (Alkohol statisztikák eltávolítva)
+
     // 6. ÉTEL - Heti statisztikák (ez a hét)
     const [foodWeekStats] = await db.execute(`
       SELECT 
@@ -585,33 +422,8 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
           email: user.email,
           createdAt: user.created_at
         },
-        alcohol: {
-          week: {
-            entries: weekStats[0].entries,
-            totalMl: weekStats[0].total_ml,
-            totalCalories: weekStats[0].total_calories
-          },
-          month: {
-            entries: monthStats[0].entries,
-            totalMl: monthStats[0].total_ml,
-            totalCalories: monthStats[0].total_calories
-          },
-          total: {
-            entries: totalStats[0].entries,
-            totalMl: totalStats[0].total_ml,
-            totalCalories: totalStats[0].total_calories,
-            avgAlcoholPercentage: parseFloat(totalStats[0].avg_alcohol_percentage).toFixed(1)
-          },
-          recentEntries: recentEntries.map(entry => ({
-            id: entry.id,
-            drinkType: entry.drink_type,
-            amountMl: entry.amount_ml,
-            alcoholPercentage: entry.alcohol_percentage,
-            calories: entry.calories,
-            date: entry.date,
-            createdAt: entry.created_at
-          }))
-        },
+        personal,
+        // Alkohol statisztikák eltávolítva a profil válaszból
         food: {
           week: {
             entries: foodWeekStats[0].entries,
@@ -676,6 +488,80 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Profile error:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// Személyes adatok mentése a felhasználó profiljához (életkor, súly, magasság stb.)
+app.post("/api/profile/details", authenticateToken, async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(500).json({
+        success: false,
+        error: "Adatbázis kapcsolat nincs!"
+      });
+    }
+
+    const userId = req.user.userId;
+    const { age, weight, height, gender, activity, goal, experience } = req.body;
+
+    const ageInt = age !== undefined && age !== null && age !== '' ? parseInt(age, 10) : null;
+    const weightKg = weight !== undefined && weight !== null && weight !== '' ? parseFloat(weight) : null;
+    const heightCm = height !== undefined && height !== null && height !== '' ? parseInt(height, 10) : null;
+    const activityMultiplier = activity !== undefined && activity !== null && activity !== '' ? parseFloat(activity) : null;
+
+    await db.execute(
+      `INSERT INTO user_profile (user_id, age, weight_kg, height_cm, gender, activity_multiplier, goal, experience)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         age = VALUES(age),
+         weight_kg = VALUES(weight_kg),
+         height_cm = VALUES(height_cm),
+         gender = VALUES(gender),
+         activity_multiplier = VALUES(activity_multiplier),
+         goal = VALUES(goal),
+         experience = VALUES(experience)`,
+      [userId, ageInt, weightKg, heightCm, gender || null, activityMultiplier, goal || null, experience || null]
+    );
+
+    console.log('✅ Személyes adatok mentve a profilhoz:', userId);
+
+    res.json({
+      success: true,
+      message: "Személyes adatok sikeresen mentve a profilhoz"
+    });
+  } catch (error) {
+    console.error("❌ Személyes profil adatok mentési hiba:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// DELETE /api/profile/details - Profil adatok törlése
+app.delete("/api/profile/details", authenticateToken, async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(500).json({
+        success: false,
+        error: "Adatbázis kapcsolat nincs!"
+      });
+    }
+
+    const userId = req.user.userId;
+
+    // Törlés az user_profile táblából
+    await db.execute(
+      `DELETE FROM user_profile WHERE user_id = ?`,
+      [userId]
+    );
+
+    console.log('✅ Profil adatok törölve:', userId);
+
+    res.json({
+      success: true,
+      message: "Profil adatok sikeresen törölve"
+    });
+  } catch (error) {
+    console.error("❌ Profil adatok törlésének hiba:", error);
     res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
   }
 });

@@ -79,15 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileClose = document.querySelector(".profile-close");
     const logoutBtnModal = document.getElementById("logout-btn-modal");
     
-    // Open profile modal
-    if (profileBtn && profileModal) {
+    // Open profile modal - reuse the global openProfileModal from auth.js
+    if (profileBtn) {
         profileBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            profileModal.classList.add("active");
-            document.body.style.overflow = "hidden";
-            
-            // Load profile data
-            loadProfileData();
+            if (window.openProfileModal && typeof window.openProfileModal === "function") {
+                window.openProfileModal();
+            }
         });
     }
     

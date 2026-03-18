@@ -13,6 +13,20 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Felhasználóhoz tartozó személyes adatok (életkor, súly, magasság, cél stb.)
+CREATE TABLE IF NOT EXISTS user_profile (
+    user_id INT PRIMARY KEY,
+    age INT NULL,
+    weight_kg DECIMAL(5,1) NULL,
+    height_cm INT NULL,
+    gender VARCHAR(10) NULL,
+    activity_multiplier DECIMAL(4,2) NULL,
+    goal VARCHAR(20) NULL,
+    experience VARCHAR(20) NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Alkohol követési tábla
 CREATE TABLE IF NOT EXISTS alcohol_entries (
     id INT AUTO_INCREMENT PRIMARY KEY,

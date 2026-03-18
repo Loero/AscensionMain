@@ -182,15 +182,6 @@
   font-size: 0.9rem;
 }
 
-/* Alcohol tracker specific */
-.custom-alcohol-fields {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
-}
-
 /* Responsive test page */
 @media (max-width: 768px) {
   .data-input-section,

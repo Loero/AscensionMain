@@ -231,12 +231,53 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', revealOnScroll);
 });
 
-/* DAILY CHECKLIST: dropdown toggle (open/close) */
+/* DAILY CHECKLIST: dropdown toggle (open/close) + main nav scroll + top CTA */
 document.addEventListener("DOMContentLoaded", () => {
+  // --- MAIN NAV SCROLL ---
+  const navButtons = document.querySelectorAll('.nav-btn[data-target]');
+
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = btn.getAttribute('data-target');
+      const section = document.getElementById(targetId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // --- TOP CTA JOIN (ugyanaz a logika, mint az alsó gombnál) ---
+  const ctaJoinTop = document.getElementById('cta-join-top');
+  const ctaJoin = document.getElementById('cta-join');
+
+  const handleJoinClick = (e) => {
+    if (e) e.preventDefault();
+
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!user) {
+      const authModal = document.getElementById("auth-modal");
+      if (authModal) {
+        authModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+      return;
+    }
+
+    // Ha be van jelentkezve, dobjuk a dashboardra
+    window.location.href = './dashboard.html';
+  };
+
+  if (ctaJoinTop) {
+    ctaJoinTop.addEventListener('click', handleJoinClick);
+  }
+
+  // Az alsó gomb alap logikáját már az auth.js kezeli, itt nem írjuk felül
+
+  // --- DAILY CHECKLIST DROPDOWN ---
   const toggles = document.querySelectorAll(".dropdown-toggle");
   const container = document.querySelector(".daily-checklist");
-  const ctaJoin = document.getElementById("cta-join");
-  
   if (!container || !toggles.length) return;
 
   // Enable all dropdown toggles

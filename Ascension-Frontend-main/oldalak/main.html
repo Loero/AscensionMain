@@ -18,10 +18,21 @@
 
     <!-- NAVIGATION -->
     <nav class="main-nav">
-        <button class="nav-btn" data-target="faq">FAQ</button>
-        <button class="nav-btn" data-target="about">Mi az az Ascension</button>
-        <button class="nav-btn" data-target="transformations">Átalakulások</button>
+      <button class="nav-btn" data-target="faq">FAQ</button>
+      <button class="nav-btn" data-target="about">Mi az az Ascension</button>
+      <button class="nav-btn" data-target="transformations">Átalakulások</button>
+      <button id="cta-join-top" class="nav-btn nav-cta-join" aria-label="Csatlakozz a rendszerhez">Csatlakozz</button>
     </nav>
+
+    <!-- Bejelentkezés / Fiókod gomb a jobb felső sarokban -->
+    <button
+      id="auth-toggle"
+      class="auth-toggle"
+      aria-label="Bejelentkezés / Fiókod"
+      title="Bejelentkezés / Regisztráció"
+    >
+      Bejelentkezés
+    </button>
 
     <!-- HERO -->
     <section class="core-hero">
@@ -178,7 +189,7 @@
 
     <!-- GOMBOK SZEKCIÓ (scroll animáció nélkül) -->
     <section class="button-section">
-        <button id="cta-join" class="cta-join" aria-label="Csatlakozz a rendszerhez" onclick="document.getElementById('auth-modal').classList.add('active'); document.body.style.overflow='hidden';">Csatlakozz a rendszerhez</button>
+      <button id="cta-join" class="cta-join" aria-label="Csatlakozz a rendszerhez">Csatlakozz a rendszerhez</button>
     </section>    <!-- Bejelentkezés/Regisztráció Modal -->
     <div id="auth-modal" class="auth-modal">
       <div class="auth-modal-content">
