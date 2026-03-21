@@ -8,7 +8,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5501', 'http://127.0.0.1:5501', 'http://localhost:5500', 'http://127.0.0.1:5500'],
+  credentials: true
+}));
 app.use(express.json());
 const upload = multer({ dest: "uploads/" });
 
@@ -88,96 +91,12 @@ cloudinary.config({
   api_secret: "8Il9Me1gW-ZOK-hkwjazlT_rMYM",
 });
 
-/* ====== YOUCAM ====== */
-const YOUCAM_URL =
-  "https://yce-api-01.makeupar.com/s2s/v2.0/task/skin-analysis";
-
-const YOUCAM_TOKEN =
-  "sk-k-JqVOqEWFz8RxwRkOjAC05xLtfkfCQ5Vf8dEJ0vDykLXPpWhk2dGtWc9CNcZeX7";
-
 /* ====== USDA FoodData Central ====== */
 const FDC_API_KEY =
   process.env.FDC_API_KEY || "dVZB801iAYTee9gse3M24mw2rYVtxkjpd2kW3jT3";
 
 /* ====== SEGÉD ====== */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-/* ====== YOUCAM START ====== */
-async function startTask(imageUrl) {
-  const res = await fetch(YOUCAM_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${YOUCAM_TOKEN}`,
-    },
-    body: JSON.stringify({
-      src_file_url: imageUrl,
-      dst_actions: ["acne", "oiliness"],
-      format: "json",
-    }),
-  });
-
-  const payload = await res.json();
-  console.log("YouCam START válasz:", JSON.stringify(payload, null, 2));
-  return payload?.data?.task_id;
-}
-
-/* ====== YOUCAM POLL ====== */
-async function pollTask(taskId) {
-  for (let i = 0; i < 60; i++) {
-    const res = await fetch(`${YOUCAM_URL}/${encodeURIComponent(taskId)}`, {
-      headers: {
-        Authorization: `Bearer ${YOUCAM_TOKEN}`,
-      },
-    });
-
-    const payload = await res.json();
-    const status = payload?.data?.task_status;
-
-    console.log("YouCam poll státusz:", status);
-    console.log("YouCam poll payload:", JSON.stringify(payload, null, 2));
-
-    if (status === "success") {
-      return payload.data.results;
-    }
-
-    if (status === "error") {
-      throw new Error(
-        "YouCam task error: " + JSON.stringify(payload?.data?.error || payload)
-      );
-    }
-
-    await sleep(2000);
-  }
-
-  throw new Error("YouCam timeout");
-}
-
-/* ====== EGYSZERŰ TANÁCS ====== */
-function generateAdvice(rawResults) {
-  const advice = [];
-
-  if (!rawResults?.output) {
-    return ["Nem sikerült elemezni az arcot."];
-  }
-
-  const oiliness = rawResults.output.find((o) => o.type === "oiliness");
-  const acne = rawResults.output.find((o) => o.type === "acne");
-
-  if (oiliness && oiliness.ui_score > 60) {
-    advice.push("Zsíros bőr: könnyű, gél állagú hidratálót használj.");
-  }
-
-  if (acne && acne.ui_score > 30) {
-    advice.push("Pattanások: BHA / szalicilsav segíthet.");
-  }
-
-  if (advice.length === 0) {
-    advice.push("A bőröd összképe jó állapotban van. Folytasd a jelenlegi rutint.");
-  }
-
-  return advice;
-}
 
 // Bejelentkezés
 app.post("/api/auth/login", async (req, res) => {
@@ -234,6 +153,71 @@ app.post("/api/auth/login", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Login error:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// Regisztráció
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    // Ellenőrizzük hogy van-e DB kapcsolat
+    if (!db) {
+      return res.status(500).json({ 
+        success: false, 
+        error: "Adatbázis kapcsolat nincs! Ellenőrizd a backend-et!" 
+      });
+    }
+    
+    const { username, email, password } = req.body;
+    
+    console.log('📝 Regisztráció kísérlet:', { username, email });
+    
+    if (!username || !email || !password) {
+      return res.status(400).json({ success: false, error: "Minden mező megadása kötelező" });
+    }
+    
+    // Ellenőrizzük, hogy létezik-e már a felhasználónév vagy email
+    const [existingUsers] = await db.execute(
+      'SELECT * FROM users WHERE username = ? OR email = ?',
+      [username, email]
+    );
+    
+    if (existingUsers.length > 0) {
+      const existingUser = existingUsers[0];
+      if (existingUser.username === username) {
+        return res.status(409).json({ success: false, error: "Ez a felhasználónév már foglalt" });
+      }
+      if (existingUser.email === email) {
+        return res.status(409).json({ success: false, error: "Ez az email cím már regisztrálva van" });
+      }
+    }
+    
+    // Jelszó hash-elése
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Új felhasználó létrehozása
+    const [result] = await db.execute(
+      'INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, NOW())',
+      [username, email, hashedPassword]
+    );
+    
+    console.log('✅ Regisztráció sikeres!', username);
+    
+    // Token generálása
+    const token = jwt.sign(
+      { userId: result.insertId, username, email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.json({
+      success: true,
+      message: "Sikeres regisztráció",
+      token,
+      user: { id: result.insertId, username, email }
+    });
+  } catch (error) {
+    console.error("❌ Regisztrációs hiba:", error);
     res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
   }
 });
@@ -965,6 +949,169 @@ app.delete("/api/food/:id", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Food delete error:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+/* ====== SKIN ROUTINE ENDPOINTS ====== */
+
+// Rutin mentése
+app.post("/api/skin/save-routine", authenticateToken, async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(500).json({ 
+        success: false, 
+        error: "Adatbázis kapcsolat nincs!" 
+      });
+    }
+    
+    const { answers, routine } = req.body;
+    const userId = req.user.userId;
+    
+    console.log('💾 Rutin mentése kérés:', { userId, answers, routine });
+    
+    // Ellenőrizzük, hogy van-e már aktív rutina a felhasználónak
+    const [existingRoutines] = await db.execute(
+      'SELECT id FROM skin_routines WHERE user_id = ? AND is_active = TRUE',
+      [userId]
+    );
+    
+    if (existingRoutines.length > 0) {
+      // Inaktiváljuk a régi rutinokat
+      await db.execute(
+        'UPDATE skin_routines SET is_active = FALSE WHERE user_id = ?',
+        [userId]
+      );
+    }
+    
+    // Új rutin mentése
+    const [result] = await db.execute(`
+      INSERT INTO skin_routines (
+        user_id, skin_type, age_group, concerns, goals, 
+        morning_routine, evening_routine, weekly_treatments, 
+        product_recommendations, tips
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      userId,
+      answers.skin_type || 'normal',
+      answers.age || '25_35',
+      JSON.stringify(answers.concerns || []),
+      JSON.stringify(answers.goals || []),
+      JSON.stringify(routine.morning_routine || []),
+      JSON.stringify(routine.evening_routine || []),
+      JSON.stringify(routine.weekly_treatments || []),
+      JSON.stringify(routine.product_recommendations || []),
+      JSON.stringify(routine.tips || [])
+    ]);
+    
+    console.log('✅ Rutin sikeresen elmentve! ID:', result.insertId);
+    
+    res.json({
+      success: true,
+      message: "Rutin sikeresen elmentve!",
+      routine_id: result.insertId
+    });
+  } catch (error) {
+    console.error("❌ Rutin mentési hiba:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// Rutin lekérése
+app.get("/api/skin/routine", authenticateToken, async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(500).json({ 
+        success: false, 
+        error: "Adatbázis kapcsolat nincs!" 
+      });
+    }
+    
+    const userId = req.user.userId;
+    
+    const [routines] = await db.execute(`
+      SELECT * FROM skin_routines 
+      WHERE user_id = ? AND is_active = TRUE 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `, [userId]);
+    
+    if (routines.length === 0) {
+      return res.json({
+        success: true,
+        routine: null,
+        message: "Nincs még mentett rutina"
+      });
+    }
+    
+    const routine = routines[0];
+    
+    // JSON mezők parse-olása
+    routine.concerns = JSON.parse(routine.concerns || '[]');
+    routine.goals = JSON.parse(routine.goals || '[]');
+    routine.morning_routine = JSON.parse(routine.morning_routine || '[]');
+    routine.evening_routine = JSON.parse(routine.evening_routine || '[]');
+    routine.weekly_treatments = JSON.parse(routine.weekly_treatments || '[]');
+    routine.product_recommendations = JSON.parse(routine.product_recommendations || '[]');
+    routine.tips = JSON.parse(routine.tips || '[]');
+    
+    console.log('✅ Rutin lekérve:', routine.id);
+    
+    res.json({
+      success: true,
+      routine: routine
+    });
+  } catch (error) {
+    console.error("❌ Rutin lekérési hiba:", error);
+    res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
+  }
+});
+
+// Rutin követés (napi checkboxok)
+app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(500).json({ 
+        success: false, 
+        error: "Adatbázis kapcsolat nincs!" 
+      });
+    }
+    
+    const { routine_id, date, morning_completed, evening_completed, morning_steps, evening_steps, notes } = req.body;
+    const userId = req.user.userId;
+    
+    console.log('📊 Rutin követés mentése:', { userId, routine_id, date, morning_completed, evening_completed });
+    
+    // Ellenőrizzük, hogy létezik-e már mai bejegyzés
+    const [existing] = await db.execute(
+      'SELECT id FROM skin_routine_tracking WHERE user_id = ? AND routine_id = ? AND date = ?',
+      [userId, routine_id, date]
+    );
+    
+    if (existing.length > 0) {
+      // Frissítés
+      await db.execute(`
+        UPDATE skin_routine_tracking 
+        SET morning_completed = ?, evening_completed = ?, morning_steps = ?, evening_steps = ?, notes = ?
+        WHERE id = ?
+      `, [morning_completed, evening_completed, JSON.stringify(morning_steps || []), JSON.stringify(evening_steps || []), notes, existing[0].id]);
+    } else {
+      // Új bejegyzés
+      await db.execute(`
+        INSERT INTO skin_routine_tracking 
+        (user_id, routine_id, date, morning_completed, evening_completed, morning_steps, evening_steps, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [userId, routine_id, date, morning_completed, evening_completed, JSON.stringify(morning_steps || []), JSON.stringify(evening_steps || []), notes]);
+    }
+    
+    console.log('✅ Rutin követés elmentve!');
+    
+    res.json({
+      success: true,
+      message: "Követés sikeresen elmentve!"
+    });
+  } catch (error) {
+    console.error("❌ Rutin követési hiba:", error);
     res.status(500).json({ success: false, error: "Szerver hiba: " + error.message });
   }
 });

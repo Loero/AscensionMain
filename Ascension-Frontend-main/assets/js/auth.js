@@ -137,14 +137,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const emailOrUsername = emailOrUsernameEl ? emailOrUsernameEl.value : '';
             const password = passwordEl ? passwordEl.value : '';
 
-            console.log('🔐 Bejelentkezés indítása...');
-
             try {
+                console.log('🔐 Bejelentkezés indítása...');
+                console.log('🌐 API URL:', `${API_URL}/login`);
+                console.log('📤 Küldött adatok:', { emailOrUsername, password });
+
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ emailOrUsername, password })
                 });
+
+                console.log('📨 Válasz státusz:', response.status);
+                console.log('📨 Válasz headers:', response.headers);
 
                 const data = await response.json();
 
@@ -355,7 +360,28 @@ document.addEventListener('DOMContentLoaded', function() {
             let dailyCalories = 0;
             let dailyFoodEntries = [];
             let dailyWorkoutMinutes = 0;
+            let skinRoutineData = null;
+            
             try {
+                // Bőrápolási rutin lekérése
+                try {
+                    const skinResp = await fetch('http://localhost:3000/api/skin/routine', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const skinData = await skinResp.json();
+                    if (skinData.success && skinData.routine) {
+                        skinRoutineData = skinData.routine;
+                        console.log('✅ Bőrápolási rutin lekérve:', skinData.routine);
+                    }
+                } catch (skinErr) {
+                    console.error('❌ Bőrápolási rutin lekérési hiba:', skinErr);
+                }
+                
                 const foodResp = await fetch(`http://localhost:3000/api/food/entries?date=${todayStr}`, {
                     method: 'GET',
                     headers: {
@@ -400,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('❌ Napi kalória lekérési hiba:', foodErr);
             }
 
-            displayProfileData(data.profile, dailyCalories, dailyFoodEntries, dailyWorkoutMinutes);
+            displayProfileData(data.profile, dailyCalories, dailyFoodEntries, dailyWorkoutMinutes, skinRoutineData);
         } catch (error) {
             console.error('❌ Profil lekérési hiba:', error);
             profileContent.innerHTML = `
@@ -413,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Profil adatok megjelenítése
-    function displayProfileData(profile, dailyCalories, dailyFoodEntries = [], dailyWorkoutMinutes = 0) {
+    function displayProfileData(profile, dailyCalories, dailyFoodEntries = [], dailyWorkoutMinutes = 0, skinRoutineData = null) {
         console.log('🎨 Profil megjelenítése:', profile);
 
         const { user, food, workout, personal } = profile;
@@ -443,10 +469,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const mapExperience = (exp) => {
             if (!exp) return '-';
-            if (exp === 'beginner') return 'Kezdő (0-1 év)';
-            if (exp === 'intermediate') return 'Haladó (1-3 év)';
-            if (exp === 'advanced') return 'Profi (3+ év)';
+            if (exp === 'beginner') return 'Kezdő';
+            if (exp === 'intermediate') return 'Középhaladó';
+            if (exp === 'advanced') return 'Haladó';
             return exp;
+        };
+
+        const getSkinTypeLabel = (skinType) => {
+            const labels = {
+                'normal': 'Normál',
+                'dry': 'Száraz',
+                'oily': 'Zsíros',
+                'combination': 'Vegyes',
+                'sensitive': 'Érzékeny'
+            };
+            return labels[skinType] || skinType;
+        };
+
+        const getAgeGroupLabel = (ageGroup) => {
+            const labels = {
+                'under_25': '25 év alatt',
+                '25_35': '25-35 év',
+                '35_45': '35-45 év',
+                '45_55': '45-55 év',
+                'over_55': '55 év felett'
+            };
+            return labels[ageGroup] || ageGroup;
         };
 
         const mapActivity = (mult) => {
@@ -713,6 +761,66 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         html += `
+                </div>
+                
+                <div class="profile-section">
+                    <h3>🧴 Bőrápolási Rutin</h3>
+                    ${skinRoutineData ? `
+                        <div class="skin-routine-info">
+                            <div class="routine-header-info">
+                                <p><strong>Bőrtípus:</strong> ${getSkinTypeLabel(skinRoutineData.skin_type)}</p>
+                                <p><strong>Korcsoport:</strong> ${getAgeGroupLabel(skinRoutineData.age_group)}</p>
+                                <p><strong>Létrehozva:</strong> ${formatDate(skinRoutineData.created_at)}</p>
+                            </div>
+                            
+                            <div class="routine-details">
+                                <div class="routine-section-mini">
+                                    <h4>🌅 Reggeli Rutin</h4>
+                                    <ul class="routine-steps-mini">
+                                        ${skinRoutineData.morning_routine.map(step => `<li>${step}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                
+                                <div class="routine-section-mini">
+                                    <h4>🌙 Esti Rutin</h4>
+                                    <ul class="routine-steps-mini">
+                                        ${skinRoutineData.evening_routine.map(step => `<li>${step}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                
+                                ${skinRoutineData.weekly_treatments && skinRoutineData.weekly_treatments.length > 0 ? `
+                                <div class="routine-section-mini">
+                                    <h4>📅 Heti Kezelések</h4>
+                                    <ul class="routine-steps-mini">
+                                        ${skinRoutineData.weekly_treatments.map(treatment => `<li>${treatment}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                ` : ''}
+                                
+                                ${skinRoutineData.product_recommendations && skinRoutineData.product_recommendations.length > 0 ? `
+                                <div class="routine-section-mini">
+                                    <h4>🛍️ Ajánlott Termékek</h4>
+                                    <ul class="routine-steps-mini">
+                                        ${skinRoutineData.product_recommendations.map(product => `<li>${product}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div style="margin-top: 15px; text-align: center;">
+                                <button onclick="window.location.href='./oldalak/menupontok/Arc.html'" style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                    🔄 Rutin Frissítése
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 20px; color: #bdbdbd;">
+                            <p>Még nincs mentett bőrápolási rutinod.</p>
+                            <button onclick="window.location.href='./oldalak/menupontok/Arc.html'" style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-top: 10px;">
+                                🧪 Rutin Készítése
+                            </button>
+                        </div>
+                    `}
                 </div>
                 
                 <div class="profile-section" style="border-top: 1px solid #444; padding-top: 20px; margin-top: 20px;">

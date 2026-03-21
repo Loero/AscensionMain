@@ -14,6 +14,7 @@
     />
     <link rel="stylesheet" href="../../assets/css/main_style.css" />
     <link rel="stylesheet" href="../../assets/css/dashboard_style.css" />
+    <link rel="stylesheet" href="../../assets/css/professional.css" />
   </head>
   <body>
     <header class="dashboard-header">
@@ -71,28 +72,85 @@
     </nav>
 
     <main class="mainwindow-content">
-      <h2>Arc</h2>
-      <p>
-        Az arcod az első benyomás.<br />
-        Optimalizáld.
-      </p>
+      <h1 class="arc-title">Az Ascension Arc Program</h1>
+      <div class="arc-intro">
+        <div class="intro-stats">
+          <div class="stat-item">
+            <div class="stat-icon"></div>
+            <span class="stat-text">Személyre szabott elemzés</span>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon"></div>
+            <span class="stat-text">Egyedi rutin generálás</span>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon"></div>
+            <span class="stat-text">Haladás követés</span>
+          </div>
+        </div>
+        
+        <div class="intro-description">
+          <h3>Az Ascension Arc Program</h3>
+          <p>
+            Fedezd fel bőröd igazi potenciálját tudományos alapú elemzésekkel és 
+            személyre szabott arcápolási rutinokkal. Ne csak ápold, hanem értsd is a bőröd!
+          </p>
+          
+          <div class="intro-features">
+            <div class="feature-item">
+              <div class="feature-icon"></div>
+              <div class="feature-content">
+                <h4>Bőrtípus Elemzés</h4>
+                <p>10 pontos kérdőív a bőröd pontos megértéséhez</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"></div>
+              <div class="feature-content">
+                <h4>Személyre Szabás</h4>
+                <p>Egyedi rutin a te bőrtípusodnak és céljaidnak</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"></div>
+              <div class="feature-content">
+                <h4>Fejlődés Követés</h4>
+                <p>Figyeld a változást és optimalizáld a rutinodat</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
-    <section class="core-section" id="face-upload-section">
-      <h3>🤳 Arc feltöltése és AI elemzés</h3>
+    <section class="core-section" id="skin-analysis-section">
+      <h3>Bőrtípus Elemzés</h3>
+      <p>
+        Válaszolj a kérdésekre, hogy személyre szabott arcápolási rutint állíthassunk össze neked!
+      </p>
+      
+      <div class="quiz-container" id="skinQuiz">
+        <div class="quiz-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+          <span class="progress-text" id="progressText">1 / 10</span>
+        </div>
 
-      <form id="faceUploadForm">
-        <input type="file" id="faceImage" accept="image/*" required />
-        <br /><br />
+        <div class="quiz-question" id="questionContainer">
+          <!-- Kérdések dinamikusan betöltve -->
+        </div>
 
-        <img
-          id="facePreview"
-          style="display: none; max-width: 200px; margin-bottom: 10px"
-        />
+        <div class="quiz-controls">
+          <button class="btn-quiz" id="prevBtn" style="display: none;">← Vissza</button>
+          <button class="btn-quiz" id="nextBtn">Tovább →</button>
+          <button class="btn-quiz btn-primary" id="generateBtn" style="display: none;">Rutin Generálása</button>
+        </div>
+      </div>
 
-        <br />
-        <button type="submit">AI elemzés indítása</button>
-      </form>      <div id="aiResult" style="display: none; margin-top: 15px"></div>
+      <div class="routine-result" id="routineResult" style="display: none;">
+        <!-- Generált rutin megjelenítése -->
+      </div>
     </section>
     
     <!-- Vissza a főoldalra gomb -->
@@ -169,5 +227,6 @@
     <script src="../../assets/js/script.js"></script>
     <script src="../../assets/js/auth.js"></script>
     <script src="../../assets/js/dashboard.js"></script>
+    <script src="../../assets/js/skin-quiz.js"></script>
   </body>
 </html>
