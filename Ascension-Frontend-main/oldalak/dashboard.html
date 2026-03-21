@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ascension - Vezérlőpult</title>
@@ -23,210 +23,257 @@
     <link rel="stylesheet" href="../assets/css/main_style.css" />
     <link rel="stylesheet" href="../assets/css/dashboard_style.css" />
     <link rel="stylesheet" href="../assets/css/modern-dashboard.css" />
-</head>
-<body class="page-loaded">
-
+  </head>
+  <body class="page-loaded">
     <!-- HEADER with Hamburger Menu -->
     <header class="dashboard-header">
-        <div class="header-left">
-        </div>
-        
-        <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+      <div class="header-left"></div>
+
+      <a
+        class="header-brand"
+        href="./dashboard.html"
+        aria-label="Vissza a Dashboard oldalra"
+      >
+        ASCEND
+      </a>
+
+      <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </header>
+
+    <button
+      id="auth-toggle"
+      class="auth-toggle"
+      aria-label="Bejelentkezés / Fiókod"
+      title="Bejelentkezés / Regisztráció"
+    >
+      Bejelentkezés
+    </button>
 
     <!-- Mobile Navigation Menu -->
     <nav class="mobile-nav" id="mobile-nav">
-        <div class="nav-content">
-            <button class="nav-close" id="nav-close" aria-label="Bezárás">&times;</button>
-            
-            <div class="nav-section">
-                <h3>Fejlesztési Területek</h3>
-                <ul class="nav-links">
-                    <li><a href="./menupontok/Test.html" class="nav-link">
-                        <span class="nav-icon"></span>
-                        <span class="nav-text">Test</span>
-                    </a></li>
-                    <li><a href="./menupontok/Arc.html" class="nav-link">
-                        <span class="nav-icon"></span>
-                        <span class="nav-text">Arc</span>
-                    </a></li>
-                    <li><a href="./menupontok/Mental.html" class="nav-link">
-                        <span class="nav-icon"></span>
-                        <span class="nav-text">Mentál</span>
-                    </a></li>
-                </ul>
-            </div>
-            
-            <div class="nav-section">
-                <h3>Fiók</h3>
-                <ul class="nav-links">
-                    <li><a href="#" class="nav-link" id="profile-btn">
-                        <span class="nav-icon"></span>
-                        <span class="nav-text">Profilom</span>
-                    </a></li>
-                    <li><a href="#" class="nav-link" id="logout-btn">
-                        <span class="nav-icon"></span>
-                        <span class="nav-text">Kijelentkezés</span>
-                    </a></li>
-                </ul>
-            </div>
+      <div class="nav-content">
+        <button class="nav-close" id="nav-close" aria-label="Bezárás">
+          &times;
+        </button>
 
-            <div class="nav-section">
-                <h3>Navigáció</h3>
-                <ul class="nav-links">
-                    <li><a href="./main.html" class="nav-link">
-                        <span class="nav-icon"></span>
-                        <span class="nav-text">Vissza a főoldalra</span>
-                    </a></li>
-                </ul>
-            </div>
+        <div class="nav-section">
+          <h3>Fejlesztési Területek</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="./menupontok/Test.html" class="nav-link">
+                <span class="nav-icon">💪</span>
+                <span class="nav-text">Test</span>
+              </a>
+            </li>
+            <li>
+              <a href="./menupontok/Arc.html" class="nav-link">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Arc</span>
+              </a>
+            </li>
+            <li>
+              <a href="./menupontok/Mental.html" class="nav-link">
+                <span class="nav-icon">🧠</span>
+                <span class="nav-text">Mentál</span>
+              </a>
+            </li>
+          </ul>
         </div>
+
+        <div class="nav-section">
+          <h3>Navigáció</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="./main.html" class="nav-link">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Vissza a főoldalra</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="nav-section nav-section-account">
+          <h3>Fiók</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="#" class="nav-link" id="logout-btn">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Kijelentkezés</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </nav>
 
     <!-- MAIN CONTENT -->
     <main class="dashboard-container">
-        <!-- Hero Section - Overview -->
-        <section class="hero-section">
-            <h1 class="hero-title">Ascension System</h1>
-            <p class="hero-subtitle">Üdvözölünk a fejlődési rendszeredben. Kövesd a haladásodat és teljesítsd a napi feladatokat.</p>
-            <div class="hero-divider"></div>
-            
-            <!-- Daily Progress Bar -->
-            <div class="daily-progress-container">
-                <div class="daily-progress-label">Daily Progress – 0/3 completed</div>
-                <div class="daily-progress">
-                    <div class="daily-progress-fill" style="width: 0%;"></div>
-                </div>
-            </div>
-        </section>
+      <!-- Hero Section - Overview -->
+      <section class="hero-section">
+        <h1 class="hero-title">Ascension System</h1>
+        <p class="hero-subtitle">
+          Üdvözölünk a fejlődési rendszeredben. Kövesd a haladásodat és
+          teljesítsd a napi feladatokat.
+        </p>
+        <div class="hero-divider"></div>
 
-        <!-- Stats Section - Overview -->
-        <section class="stats-section">
-            <div class="stats-grid">
-                <div class="card stat-card">
-                    <div class="stat-content">
-                        <div class="stat-icon"></div>
-                        <div class="stat-info">
-                            <div class="stat-label">Nap a rendszerben</div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-change">+0 ma</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card stat-card">
-                    <div class="stat-content">
-                        <div class="stat-icon"></div>
-                        <div class="stat-info">
-                            <div class="stat-label">PSL növekedés</div>
-                            <div class="stat-value">0.0</div>
-                            <div class="stat-change">+0.0%</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card stat-card">
-                    <div class="stat-content">
-                        <div class="stat-icon"></div>
-                        <div class="stat-info">
-                            <div class="stat-label">Napi kitöltés</div>
-                            <div class="stat-value">0%</div>
-                            <div class="stat-change">0/3 feladat</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <!-- Daily Progress Bar -->
+        <div class="daily-progress-container">
+          <div class="daily-progress-label">Daily Progress – 0/3 completed</div>
+          <div class="daily-progress">
+            <div class="daily-progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </section>
 
-        <div class="separator"></div>
+      <!-- Stats Section - Overview -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-content">
+              <div class="stat-icon"></div>
+              <div class="stat-info">
+                <div class="stat-label">Nap a rendszerben</div>
+                <div class="stat-value">0</div>
+                <div class="stat-change">+0 ma</div>
+              </div>
+            </div>
+          </div>
 
-        <!-- Tasks Section - Main actionable area -->
-        <section class="tasks-section">
-            <div class="section-header">
-                <h2 class="section-title">Mai Feladatok</h2>
-                <p class="section-subtitle">Teljesítsd a napi céljaid a folyamatos fejlődésért</p>
+          <div class="card stat-card">
+            <div class="stat-content">
+              <div class="stat-icon"></div>
+              <div class="stat-info">
+                <div class="stat-label">PSL növekedés</div>
+                <div class="stat-value">0.0</div>
+                <div class="stat-change">+0.0%</div>
+              </div>
             </div>
-            
-            <div class="tasks-grid">
-                <div class="card task-card">
-                    <div class="task-header">
-                        <div class="task-icon"></div>
-                        <div>
-                            <h3 class="task-title">Edzés</h3>
-                        </div>
-                    </div>
-                    <p class="task-description">Ma nincs edzés beállítva. Állíts be egy edzést a napi rutinod részeként.</p>
-                    <div class="task-progress">
-                        <div class="task-progress-bar">
-                            <div class="task-progress-fill" style="width: 0%;"></div>
-                        </div>
-                        <div class="task-progress-text">0% Complete</div>
-                    </div>
-                    <button class="btn btn-primary">Edzés Beállítása</button>
-                </div>
-                
-                <div class="card task-card">
-                    <div class="task-header">
-                        <div class="task-icon"></div>
-                        <div>
-                            <h3 class="task-title">Arcápolás</h3>
-                        </div>
-                    </div>
-                    <p class="task-description">Rutin nincs beállítva. Készítsd el a személyre szabott arcápolási rutinodat.</p>
-                    <div class="task-progress">
-                        <div class="task-progress-bar">
-                            <div class="task-progress-fill" style="width: 0%;"></div>
-                        </div>
-                        <div class="task-progress-text">0% Complete</div>
-                    </div>
-                    <button class="btn btn-primary">Rutin Készítése</button>
-                </div>
-                
-                <div class="card task-card">
-                    <div class="task-header">
-                        <div class="task-icon"></div>
-                        <div>
-                            <h3 class="task-title">Mentális</h3>
-                        </div>
-                    </div>
-                    <p class="task-description">Nincs mentális gyakorlat. Válassz egy meditációt vagy relaxációs technikát.</p>
-                    <div class="task-progress">
-                        <div class="task-progress-bar">
-                            <div class="task-progress-fill" style="width: 0%;"></div>
-                        </div>
-                        <div class="task-progress-text">0% Complete</div>
-                    </div>
-                    <button class="btn btn-primary">Gyakorlat Választása</button>
-                </div>
+          </div>
+
+          <div class="card stat-card">
+            <div class="stat-content">
+              <div class="stat-icon"></div>
+              <div class="stat-info">
+                <div class="stat-label">Napi kitöltés</div>
+                <div class="stat-value">0%</div>
+                <div class="stat-change">0/3 feladat</div>
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
+
+      <div class="separator"></div>
+
+      <!-- Tasks Section - Main actionable area -->
+      <section class="tasks-section">
+        <div class="section-header">
+          <h2 class="section-title">Mai Feladatok</h2>
+          <p class="section-subtitle">
+            Teljesítsd a napi céljaid a folyamatos fejlődésért
+          </p>
+        </div>
+
+        <div class="tasks-grid">
+          <div class="card task-card">
+            <div class="task-header">
+              <div class="task-icon"></div>
+              <div>
+                <h3 class="task-title">Edzés</h3>
+              </div>
+            </div>
+            <p class="task-description">
+              Ma nincs edzés beállítva. Állíts be egy edzést a napi rutinod
+              részeként.
+            </p>
+            <div class="task-progress">
+              <div class="task-progress-bar">
+                <div class="task-progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="task-progress-text">0% Complete</div>
+            </div>
+            <button class="btn btn-primary">Edzés Beállítása</button>
+          </div>
+
+          <div class="card task-card">
+            <div class="task-header">
+              <div class="task-icon"></div>
+              <div>
+                <h3 class="task-title">Arcápolás</h3>
+              </div>
+            </div>
+            <p class="task-description">
+              Rutin nincs beállítva. Készítsd el a személyre szabott arcápolási
+              rutinodat.
+            </p>
+            <div class="task-progress">
+              <div class="task-progress-bar">
+                <div class="task-progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="task-progress-text">0% Complete</div>
+            </div>
+            <button class="btn btn-primary">Rutin Készítése</button>
+          </div>
+
+          <div class="card task-card">
+            <div class="task-header">
+              <div class="task-icon"></div>
+              <div>
+                <h3 class="task-title">Mentális</h3>
+              </div>
+            </div>
+            <p class="task-description">
+              Nincs mentális gyakorlat. Válassz egy meditációt vagy relaxációs
+              technikát.
+            </p>
+            <div class="task-progress">
+              <div class="task-progress-bar">
+                <div class="task-progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="task-progress-text">0% Complete</div>
+            </div>
+            <button class="btn btn-primary">Gyakorlat Választása</button>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Profil Modal -->
     <div id="profile-modal" class="auth-modal">
       <div class="auth-modal-content profile-modal-content">
-        <button class="auth-close profile-close" aria-label="Bezárás">&times;</button>
-        
-        <h2 style="text-align: center; margin-bottom: 30px; font-family: 'Cinzel', serif; color: #f5f5f5;">Profilom</h2>
-        
+        <button class="auth-close profile-close" aria-label="Bezárás">
+          &times;
+        </button>
+
+        <h2
+          style="
+            text-align: center;
+            margin-bottom: 30px;
+            font-family: &quot;Cinzel&quot;, serif;
+            color: #f5f5f5;
+          "
+        >
+          Profilom
+        </h2>
+
         <div id="profile-content">
           <!-- Ide kerül a dinamikusan generált profil tartalom -->
-          <div style="text-align: center; padding: 40px; color: #bdbdbd;">
+          <div style="text-align: center; padding: 40px; color: #bdbdbd">
             <p>Profil betöltése...</p>
           </div>
         </div>
-        
+
         <button id="logout-btn-modal" class="logout-btn">Kijelentkezés</button>
       </div>
     </div>
-
-</body>
-    <script src="../assets/js/script.js"></script>
-    <script src="../assets/js/auth.js"></script>
-    <script src="../assets/js/dashboard.js"></script>
-    <script src="../assets/js/modern-dashboard.js"></script>
+  </body>
+  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/dashboard.js"></script>
+  <script src="../assets/js/modern-dashboard.js"></script>
 </html>

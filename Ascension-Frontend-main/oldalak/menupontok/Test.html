@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
   <head>
     <meta charset="UTF-8" />
@@ -22,57 +22,87 @@
   </head>
   <body>
     <header class="dashboard-header">
-        <div class="header-left">
-        </div>
-        
-        <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+      <div class="header-left"></div>
+
+      <a
+        class="header-brand"
+        href="../dashboard.html"
+        aria-label="Vissza a Dashboard oldalra"
+      >
+        ASCEND
+      </a>
+
+      <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </header>
+
+    <button
+      id="auth-toggle"
+      class="auth-toggle"
+      aria-label="Bejelentkezés / Fiókod"
+      title="Bejelentkezés / Regisztráció"
+    >
+      Bejelentkezés
+    </button>
 
     <!-- Mobile Navigation Menu -->
     <nav class="mobile-nav" id="mobile-nav">
-        <div class="nav-content">
-            <button class="nav-close" id="nav-close" aria-label="Bezárás">&times;</button>
-            
-            <div class="nav-section">
-                <h3>Fejlesztési Területek</h3>
-                <ul class="nav-links">
-                    <li><a href="./Test.html" class="nav-link">
-                        <span class="nav-icon">💪</span>
-                        <span class="nav-text">Test</span>
-                    </a></li>
-                    <li><a href="./Arc.html" class="nav-link">
-                        <span class="nav-icon">👤</span>
-                        <span class="nav-text">Arc</span>
-                    </a></li>
-                    <li><a href="./Mental.html" class="nav-link">
-                        <span class="nav-icon">🧠</span>
-                        <span class="nav-text">Mentál</span>
-                    </a></li>
-                </ul>
-            </div>
-            
-            <div class="nav-section">
-                <h3>Fiók</h3>
-                <ul class="nav-links">
-                    <li><a href="#" class="nav-link" id="profile-btn">
-                        <span class="nav-icon">👤</span>
-                        <span class="nav-text">Profilom</span>
-                    </a></li>
-                    <li><a href="../../oldalak/main.html" class="nav-link">
-                        <span class="nav-icon">🏠</span>
-                        <span class="nav-text">Főoldal</span>
-                    </a></li>
-                    <li><a href="#" class="nav-link" id="logout-btn">
-                        <span class="nav-icon">🚪</span>
-                        <span class="nav-text">Kijelentkezés</span>
-                    </a></li>
-                </ul>
-            </div>
+      <div class="nav-content">
+        <button class="nav-close" id="nav-close" aria-label="Bezárás">
+          &times;
+        </button>
+
+        <div class="nav-section">
+          <h3>Fejlesztési Területek</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="./Test.html" class="nav-link">
+                <span class="nav-icon">💪</span>
+                <span class="nav-text">Test</span>
+              </a>
+            </li>
+            <li>
+              <a href="./Arc.html" class="nav-link">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Arc</span>
+              </a>
+            </li>
+            <li>
+              <a href="./Mental.html" class="nav-link">
+                <span class="nav-icon">🧠</span>
+                <span class="nav-text">Mentál</span>
+              </a>
+            </li>
+          </ul>
         </div>
+
+        <div class="nav-section">
+          <h3>Navigáció</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="../../oldalak/main.html" class="nav-link">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Főoldal</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="nav-section">
+          <h3>Fiók</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="#" class="nav-link" id="logout-btn">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Kijelentkezés</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </nav>
 
     <main class="mainwindow-content">
@@ -241,6 +271,11 @@
           Add meg a mai edzésed súlyait az alábbi gyakorlatokhoz:
         </p>
 
+        <div class="tracker-day-selector">
+          <label for="active-workout-day">Aktuálisan végzett tervnap:</label>
+          <select id="active-workout-day"></select>
+        </div>
+
         <div id="exercise-inputs"></div>
 
         <button class="btn-save-workout" onclick="saveWorkoutSession()">
@@ -253,21 +288,23 @@
         </div>
       </section>
 
-
       <!-- Alkohol Követő eltávolítva -->
-      
+
       <!-- Vissza a főoldalra gomb -->
       <div class="back-to-home">
         <a href="../main.html" class="btn-back-home">← Vissza a főoldalra</a>
       </div>
-    </main><!-- Bejelentkezés/Regisztráció Modal -->
+    </main>
+    <!-- Bejelentkezés/Regisztráció Modal -->
     <div id="auth-modal" class="auth-modal">
       <div class="auth-modal-content">
         <button class="auth-close" aria-label="Bezárás">&times;</button>
-        
+
         <!-- Tab váltó gombok -->
         <div class="auth-tabs">
-          <button class="auth-tab active" data-tab="login">Bejelentkezés</button>
+          <button class="auth-tab active" data-tab="login">
+            Bejelentkezés
+          </button>
           <button class="auth-tab" data-tab="register">Regisztráció</button>
         </div>
 
@@ -280,7 +317,12 @@
           </div>
           <div class="form-group">
             <label for="login-password">Jelszó</label>
-            <input type="password" id="login-password" name="password" required />
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              required
+            />
           </div>
           <button type="submit" class="btn-auth">Belépés</button>
         </form>
@@ -290,7 +332,12 @@
           <h2>Regisztráció</h2>
           <div class="form-group">
             <label for="register-username">Felhasználónév</label>
-            <input type="text" id="register-username" name="username" required />
+            <input
+              type="text"
+              id="register-username"
+              name="username"
+              required
+            />
           </div>
           <div class="form-group">
             <label for="register-email">E-mail cím</label>
@@ -298,11 +345,21 @@
           </div>
           <div class="form-group">
             <label for="register-password">Jelszó</label>
-            <input type="password" id="register-password" name="password" required />
+            <input
+              type="password"
+              id="register-password"
+              name="password"
+              required
+            />
           </div>
           <div class="form-group">
             <label for="register-password-confirm">Jelszó megerősítése</label>
-            <input type="password" id="register-password-confirm" name="password-confirm" required />
+            <input
+              type="password"
+              id="register-password-confirm"
+              name="password-confirm"
+              required
+            />
           </div>
           <button type="submit" class="btn-auth">Regisztráció</button>
         </form>
@@ -312,17 +369,28 @@
     <!-- Profil Modal -->
     <div id="profile-modal" class="auth-modal">
       <div class="auth-modal-content profile-modal-content">
-        <button class="auth-close profile-close" aria-label="Bezárás">&times;</button>
-        
-        <h2 style="text-align: center; margin-bottom: 30px; font-family: 'Cinzel', serif; color: #f5f5f5;">Profilom</h2>
-        
+        <button class="auth-close profile-close" aria-label="Bezárás">
+          &times;
+        </button>
+
+        <h2
+          style="
+            text-align: center;
+            margin-bottom: 30px;
+            font-family: &quot;Cinzel&quot;, serif;
+            color: #f5f5f5;
+          "
+        >
+          Profilom
+        </h2>
+
         <div id="profile-content">
           <!-- Ide kerül a dinamikusan generált profil tartalom -->
-          <div style="text-align: center; padding: 40px; color: #bdbdbd;">
+          <div style="text-align: center; padding: 40px; color: #bdbdbd">
             <p>Profil betöltése...</p>
           </div>
         </div>
-        
+
         <button id="logout-btn" class="logout-btn">Kijelentkezés</button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
   <head>
     <meta charset="UTF-8" />
@@ -12,127 +12,179 @@
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="../../assets/css/main_style.css" />
     <link rel="stylesheet" href="../../assets/css/dashboard_style.css" />
-    <link rel="stylesheet" href="../../assets/css/professional.css" />
+    <link rel="stylesheet" href="../../assets/css/ultra-dark-test.css" />
+    <link rel="stylesheet" href="../../assets/css/ultra-dark-arc.css" />
   </head>
   <body>
     <header class="dashboard-header">
-        <div class="header-left">
-        </div>
-        
-        <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+      <div class="header-left"></div>
+
+      <a
+        class="header-brand"
+        href="../dashboard.html"
+        aria-label="Vissza a Dashboard oldalra"
+      >
+        ASCEND
+      </a>
+
+      <button class="hamburger-menu" id="hamburger-menu" aria-label="Menü">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </header>
+
+    <button
+      id="auth-toggle"
+      class="auth-toggle"
+      aria-label="Bejelentkezés / Fiókod"
+      title="Bejelentkezés / Regisztráció"
+    >
+      Bejelentkezés
+    </button>
 
     <!-- Mobile Navigation Menu -->
     <nav class="mobile-nav" id="mobile-nav">
-        <div class="nav-content">
-            <button class="nav-close" id="nav-close" aria-label="Bezárás">&times;</button>
-            
-            <div class="nav-section">
-                <h3>Fejlesztési Területek</h3>
-                <ul class="nav-links">
-                    <li><a href="./Test.html" class="nav-link">
-                        <span class="nav-icon">💪</span>
-                        <span class="nav-text">Test</span>
-                    </a></li>
-                    <li><a href="./Arc.html" class="nav-link">
-                        <span class="nav-icon">👤</span>
-                        <span class="nav-text">Arc</span>
-                    </a></li>
-                    <li><a href="./Mental.html" class="nav-link">
-                        <span class="nav-icon">🧠</span>
-                        <span class="nav-text">Mentál</span>
-                    </a></li>
-                </ul>
-            </div>
-            
-            <div class="nav-section">
-                <h3>Fiók</h3>
-                <ul class="nav-links">
-                    <li><a href="#" class="nav-link" id="profile-btn">
-                        <span class="nav-icon">👤</span>
-                        <span class="nav-text">Profilom</span>
-                    </a></li>
-                    <li><a href="../../oldalak/main.html" class="nav-link">
-                        <span class="nav-icon">🏠</span>
-                        <span class="nav-text">Főoldal</span>
-                    </a></li>
-                    <li><a href="#" class="nav-link" id="logout-btn">
-                        <span class="nav-icon">🚪</span>
-                        <span class="nav-text">Kijelentkezés</span>
-                    </a></li>
-                </ul>
-            </div>
+      <div class="nav-content">
+        <button class="nav-close" id="nav-close" aria-label="Bezárás">
+          &times;
+        </button>
+
+        <div class="nav-section">
+          <h3>Fejlesztési Területek</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="./Test.html" class="nav-link">
+                <span class="nav-icon">💪</span>
+                <span class="nav-text">Test</span>
+              </a>
+            </li>
+            <li>
+              <a href="./Arc.html" class="nav-link">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Arc</span>
+              </a>
+            </li>
+            <li>
+              <a href="./Mental.html" class="nav-link">
+                <span class="nav-icon">🧠</span>
+                <span class="nav-text">Mentál</span>
+              </a>
+            </li>
+          </ul>
         </div>
+
+        <div class="nav-section">
+          <h3>Navigáció</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="../../oldalak/main.html" class="nav-link">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Főoldal</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="nav-section">
+          <h3>Fiók</h3>
+          <ul class="nav-links">
+            <li>
+              <a href="#" class="nav-link" id="logout-btn">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Kijelentkezés</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </nav>
 
     <main class="mainwindow-content">
       <h1 class="arc-title">Az Ascension Arc Program</h1>
       <div class="arc-intro">
-        <div class="intro-stats">
-          <div class="stat-item">
-            <div class="stat-icon"></div>
-            <span class="stat-text">Személyre szabott elemzés</span>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon"></div>
-            <span class="stat-text">Egyedi rutin generálás</span>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon"></div>
-            <span class="stat-text">Haladás követés</span>
-          </div>
-        </div>
-        
-        <div class="intro-description">
-          <h3>Az Ascension Arc Program</h3>
-          <p>
-            Fedezd fel bőröd igazi potenciálját tudományos alapú elemzésekkel és 
-            személyre szabott arcápolási rutinokkal. Ne csak ápold, hanem értsd is a bőröd!
+        <section class="arc-hero">
+          <p class="arc-kicker">Ascension Arc</p>
+          <h2 class="arc-hero-title">
+            Tiszta rendszer, jobb bőrkép, mérhető fejlődés.
+          </h2>
+          <p class="arc-hero-copy">
+            Rövid elemzés után személyre szabott rutint kapsz, amit könnyű
+            követni, és aminek látható eredménye van.
           </p>
-          
-          <div class="intro-features">
-            <div class="feature-item">
-              <div class="feature-icon"></div>
-              <div class="feature-content">
-                <h4>Bőrtípus Elemzés</h4>
-                <p>10 pontos kérdőív a bőröd pontos megértéséhez</p>
-              </div>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon"></div>
-              <div class="feature-content">
-                <h4>Személyre Szabás</h4>
-                <p>Egyedi rutin a te bőrtípusodnak és céljaidnak</p>
-              </div>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon"></div>
-              <div class="feature-content">
-                <h4>Fejlődés Követés</h4>
-                <p>Figyeld a változást és optimalizáld a rutinodat</p>
-              </div>
-            </div>
+          <div class="arc-pill-row">
+            <span class="arc-pill">10 kérdéses elemzés</span>
+            <span class="arc-pill">Személyre szabott rutin</span>
+            <span class="arc-pill">Napi követhetőség</span>
           </div>
+          <a class="arc-hero-cta" href="#skin-analysis-section"
+            >Elemzés indítása</a
+          >
+        </section>
+
+        <section class="arc-feature-grid" aria-label="Arc funkciók">
+          <article class="arc-feature-card">
+            <div class="arc-feature-top">
+              <span class="arc-feature-dot"></span>
+              <span class="arc-feature-step">01</span>
+            </div>
+            <h3>Bőrtípus Elemzés</h3>
+            <p>10 pontos kérdőívvel pontos képet kapsz a kiindulási állapotról.</p>
+          </article>
+
+          <article class="arc-feature-card">
+            <div class="arc-feature-top">
+              <span class="arc-feature-dot"></span>
+              <span class="arc-feature-step">02</span>
+            </div>
+            <h3>Személyre Szabás</h3>
+            <p>A rutinod a bőrtípusodhoz és céljaidhoz lesz optimalizálva.</p>
+          </article>
+
+          <article class="arc-feature-card">
+            <div class="arc-feature-top">
+              <span class="arc-feature-dot"></span>
+              <span class="arc-feature-step">03</span>
+            </div>
+            <h3>Fejlődés Követés</h3>
+            <p>Következetes rendszerrel látod, mi működik és mi nem.</p>
+          </article>
+        </section>
         </div>
       </div>
     </main>
 
+    <section class="core-section" id="daily-skin-section">
+      <h3>Napi Arc Követés</h3>
+      <div class="quiz-container">
+        <div id="dailySkinTrackerStandaloneMount">
+          <!-- Napi arc követés dinamikusan betöltve -->
+        </div>
+        <div class="routine-actions">
+          <button class="btn-quiz btn-primary" id="dailySkinSaveBtn" type="button">
+            Napi Követés Mentése
+          </button>
+        </div>
+      </div>
+    </section>
+
     <section class="core-section" id="skin-analysis-section">
       <h3>Bőrtípus Elemzés</h3>
-      <p>
-        Válaszolj a kérdésekre, hogy személyre szabott arcápolási rutint állíthassunk össze neked!
-      </p>
-      
+
       <div class="quiz-container" id="skinQuiz">
         <div class="quiz-progress">
           <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            <div
+              class="progress-fill"
+              id="progressFill"
+              style="width: 0%"
+            ></div>
           </div>
           <span class="progress-text" id="progressText">1 / 10</span>
         </div>
@@ -142,17 +194,25 @@
         </div>
 
         <div class="quiz-controls">
-          <button class="btn-quiz" id="prevBtn" style="display: none;">← Vissza</button>
+          <button class="btn-quiz" id="prevBtn" style="display: none">
+            ← Vissza
+          </button>
           <button class="btn-quiz" id="nextBtn">Tovább →</button>
-          <button class="btn-quiz btn-primary" id="generateBtn" style="display: none;">Rutin Generálása</button>
+          <button
+            class="btn-quiz btn-primary"
+            id="generateBtn"
+            style="display: none"
+          >
+            Rutin Generálása
+          </button>
         </div>
       </div>
 
-      <div class="routine-result" id="routineResult" style="display: none;">
+      <div class="routine-result" id="routineResult" style="display: none">
         <!-- Generált rutin megjelenítése -->
       </div>
     </section>
-    
+
     <!-- Vissza a főoldalra gomb -->
     <div class="back-to-home">
       <a href="../main.html" class="btn-back-home">← Vissza a főoldalra</a>
@@ -162,10 +222,12 @@
     <div id="auth-modal" class="auth-modal">
       <div class="auth-modal-content">
         <button class="auth-close" aria-label="Bezárás">&times;</button>
-        
+
         <!-- Tab váltó gombok -->
         <div class="auth-tabs">
-          <button class="auth-tab active" data-tab="login">Bejelentkezés</button>
+          <button class="auth-tab active" data-tab="login">
+            Bejelentkezés
+          </button>
           <button class="auth-tab" data-tab="register">Regisztráció</button>
         </div>
 
@@ -178,7 +240,12 @@
           </div>
           <div class="form-group">
             <label for="login-password">Jelszó</label>
-            <input type="password" id="login-password" name="password" required />
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              required
+            />
           </div>
           <button type="submit" class="btn-auth">Belépés</button>
         </form>
@@ -188,7 +255,12 @@
           <h2>Regisztráció</h2>
           <div class="form-group">
             <label for="register-username">Felhasználónév</label>
-            <input type="text" id="register-username" name="username" required />
+            <input
+              type="text"
+              id="register-username"
+              name="username"
+              required
+            />
           </div>
           <div class="form-group">
             <label for="register-email">E-mail cím</label>
@@ -196,10 +268,21 @@
           </div>
           <div class="form-group">
             <label for="register-password">Jelszó</label>
-            <input type="password" id="register-password" name="password" required />
-          </div>          <div class="form-group">
+            <input
+              type="password"
+              id="register-password"
+              name="password"
+              required
+            />
+          </div>
+          <div class="form-group">
             <label for="register-password-confirm">Jelszó megerősítése</label>
-            <input type="password" id="register-password-confirm" name="password-confirm" required />
+            <input
+              type="password"
+              id="register-password-confirm"
+              name="password-confirm"
+              required
+            />
           </div>
           <button type="submit" class="btn-auth">Regisztráció</button>
         </form>
@@ -209,17 +292,28 @@
     <!-- Profil Modal -->
     <div id="profile-modal" class="auth-modal">
       <div class="auth-modal-content profile-modal-content">
-        <button class="auth-close profile-close" aria-label="Bezárás">&times;</button>
-        
-        <h2 style="text-align: center; margin-bottom: 30px; font-family: 'Cinzel', serif; color: #f5f5f5;">Profilom</h2>
-        
+        <button class="auth-close profile-close" aria-label="Bezárás">
+          &times;
+        </button>
+
+        <h2
+          style="
+            text-align: center;
+            margin-bottom: 30px;
+            font-family: &quot;Cinzel&quot;, serif;
+            color: #f5f5f5;
+          "
+        >
+          Profilom
+        </h2>
+
         <div id="profile-content">
           <!-- Ide kerül a dinamikusan generált profil tartalom -->
-          <div style="text-align: center; padding: 40px; color: #bdbdbd;">
+          <div style="text-align: center; padding: 40px; color: #bdbdbd">
             <p>Profil betöltése...</p>
           </div>
         </div>
-        
+
         <button id="logout-btn" class="logout-btn">Kijelentkezés</button>
       </div>
     </div>

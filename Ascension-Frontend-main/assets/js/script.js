@@ -93,12 +93,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function typeWriter() {
     const currentWord = words[currentWordIndex];
-    
+
     if (isDeleting) {
       // Deleting characters
-      typewriterElement.textContent = currentWord.substring(0, currentCharIndex - 1);
+      typewriterElement.textContent = currentWord.substring(
+        0,
+        currentCharIndex - 1,
+      );
       currentCharIndex--;
-      
+
       if (currentCharIndex === 0) {
         // Finished deleting, switch to next word
         isDeleting = false;
@@ -106,20 +109,23 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(typeWriter, 500); // Brief pause before starting next word
         return;
       }
-      
+
       setTimeout(typeWriter, deletingSpeed);
     } else {
       // Typing characters
-      typewriterElement.textContent = currentWord.substring(0, currentCharIndex + 1);
+      typewriterElement.textContent = currentWord.substring(
+        0,
+        currentCharIndex + 1,
+      );
       currentCharIndex++;
-      
+
       if (currentCharIndex === currentWord.length) {
         // Finished typing, pause then start deleting
         isDeleting = true;
         setTimeout(typeWriter, pauseTime);
         return;
       }
-      
+
       setTimeout(typeWriter, typingSpeed);
     }
   }
@@ -129,65 +135,67 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* === SCROLL REVEAL ANIMATION === */
-document.addEventListener('DOMContentLoaded', function() {
-    const scrollRevealElements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale');
-    
-    const revealOnScroll = function() {
-        scrollRevealElements.forEach(element => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementBottom = element.getBoundingClientRect().bottom;
-            const windowHeight = window.innerHeight;
-            
-            // Reveal element when it's 15% visible from bottom
-            if (elementTop < windowHeight * 0.85) {
-                element.classList.add('revealed');
-            }
-        });
-    };
-    
-    // Initial check
-    revealOnScroll();
-    
-    // Check on scroll with throttling
-    let ticking = false;
-    const scrollHandler = function() {
-        if (!ticking) {
-            requestAnimationFrame(function() {
-                revealOnScroll();
-                ticking = false;
-            });
-            ticking = true;
-        }
-    };
-    
-    window.addEventListener('scroll', scrollHandler);
-    window.addEventListener('resize', revealOnScroll);
+document.addEventListener("DOMContentLoaded", function () {
+  const scrollRevealElements = document.querySelectorAll(
+    ".scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale",
+  );
+
+  const revealOnScroll = function () {
+    scrollRevealElements.forEach((element) => {
+      const elementTop = element.getBoundingClientRect().top;
+      const elementBottom = element.getBoundingClientRect().bottom;
+      const windowHeight = window.innerHeight;
+
+      // Reveal element when it's 15% visible from bottom
+      if (elementTop < windowHeight * 0.85) {
+        element.classList.add("revealed");
+      }
+    });
+  };
+
+  // Initial check
+  revealOnScroll();
+
+  // Check on scroll with throttling
+  let ticking = false;
+  const scrollHandler = function () {
+    if (!ticking) {
+      requestAnimationFrame(function () {
+        revealOnScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  };
+
+  window.addEventListener("scroll", scrollHandler);
+  window.addEventListener("resize", revealOnScroll);
 });
 
 /* DAILY CHECKLIST: dropdown toggle (open/close) + main nav scroll + top CTA */
 document.addEventListener("DOMContentLoaded", () => {
   // --- MAIN NAV SCROLL ---
-  const navButtons = document.querySelectorAll('.nav-btn[data-target]');
+  const navButtons = document.querySelectorAll(".nav-btn[data-target]");
 
   navButtons.forEach((btn) => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
-      const targetId = btn.getAttribute('data-target');
+      const targetId = btn.getAttribute("data-target");
       const section = document.getElementById(targetId);
       if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
   });
 
   // --- TOP CTA JOIN (ugyanaz a logika, mint az alsó gombnál) ---
-  const ctaJoinTop = document.getElementById('cta-join-top');
-  const ctaJoin = document.getElementById('cta-join');
+  const ctaJoinTop = document.getElementById("cta-join-top");
+  const ctaJoin = document.getElementById("cta-join");
 
   const handleJoinClick = (e) => {
     if (e) e.preventDefault();
 
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user) {
       const authModal = document.getElementById("auth-modal");
@@ -199,11 +207,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Ha be van jelentkezve, dobjuk a dashboardra
-    window.location.href = './dashboard.html';
+    window.location.href = "./dashboard.html";
   };
 
   if (ctaJoinTop) {
-    ctaJoinTop.addEventListener('click', handleJoinClick);
+    ctaJoinTop.addEventListener("click", handleJoinClick);
   }
 
   // Az alsó gomb alap logikáját már az auth.js kezeli, itt nem írjuk felül
@@ -216,13 +224,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Enable all dropdown toggles
   toggles.forEach((btn) => {
     btn.classList.remove("disabled");
-    
+
     // Add click handler for navigation based on auth status
-    btn.addEventListener("click", function(e) {
+    btn.addEventListener("click", function (e) {
       e.preventDefault();
-      
-      const user = JSON.parse(localStorage.getItem('user'));
-      
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
       if (!user) {
         // User is not logged in, open registration modal
         const authModal = document.getElementById("auth-modal");
@@ -233,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (authModal) {
           authModal.classList.add("active");
           document.body.style.overflow = "hidden";
-          
+
           // Don't force tab switch - let user choose between login/register
         }
         return;
@@ -243,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const buttonText = btn.textContent.trim();
       let targetPage = "";
 
-      switch(buttonText) {
+      switch (buttonText) {
         case "Edzés":
           targetPage = "../oldalak/menupontok/Test.html";
           break;
@@ -269,13 +277,17 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const parent = btn.closest(".dropdown-checklist");
       const wasOpen = parent.classList.contains("open");
-      container.querySelectorAll(".dropdown-checklist.open").forEach((el) => el.classList.remove("open"));
+      container
+        .querySelectorAll(".dropdown-checklist.open")
+        .forEach((el) => el.classList.remove("open"));
       if (!wasOpen) parent.classList.add("open");
     });
   });
 
   document.addEventListener("click", (e) => {
     if (e.target.closest(".daily-checklist")) return;
-    container.querySelectorAll(".dropdown-checklist.open").forEach((el) => el.classList.remove("open"));
+    container
+      .querySelectorAll(".dropdown-checklist.open")
+      .forEach((el) => el.classList.remove("open"));
   });
 });

@@ -7,8 +7,8 @@
   --dark: #0b0b0b;
   --text: #f5f5f5;
   --muted: #bdbdbd;
-  --glow: rgba(255, 215, 0, 0.25);
-  --accent: #FFD700;
+  --glow: rgba(211, 47, 47, 0.25);
+  --accent: #d32f2f;
 }
 
 /* Reset and Base */
@@ -18,7 +18,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   font-family: Arial, sans-serif;
   font-weight: bold;
@@ -40,8 +41,34 @@ html, body {
   padding: 15px 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   height: 70px;
+}
+
+.header-brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f5f5f5;
+  text-decoration: none;
+  font-family: "Cinzel", "Copperplate Gothic", "Copperplate", serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.header-brand:hover {
+  color: #ef4444;
+  text-shadow: 0 0 14px rgba(211, 47, 47, 0.45);
+}
+
+.header-brand:active {
+  transform: translateX(-50%) scale(0.98);
 }
 
 /* === HAMBURGER MENU === */
@@ -89,31 +116,47 @@ html, body {
 .mobile-nav {
   position: fixed;
   top: 0;
-  right: -100%;
+  left: -100%;
   width: 80%;
   max-width: 400px;
   height: 100vh;
   background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(20px);
   z-index: 999;
-  transition: right 0.3s ease;
+  transition: left 0.3s ease;
   overflow-y: auto;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-nav.active {
-  right: 0;
+  left: 0;
+}
+
+.daily-congrats {
+  margin-top: 10px;
+  color: #ffd5d5;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 12px rgba(211, 47, 47, 0.35);
 }
 
 .nav-content {
   padding: 80px 20px 20px;
   position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-section-account {
+  margin-top: auto;
+  margin-bottom: 12px;
 }
 
 .nav-close {
   position: absolute;
   top: 20px;
-  right: 20px;
+  left: 20px;
   background: transparent;
   border: none;
   color: var(--text);
@@ -137,7 +180,7 @@ html, body {
   margin-bottom: 20px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  border-bottom: 1px solid rgba(211, 47, 47, 0.3);
   padding-bottom: 10px;
 }
 
@@ -163,10 +206,10 @@ html, body {
 }
 
 .nav-link:hover {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.3);
-  transform: translateX(-5px);
-  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+  background: rgba(211, 47, 47, 0.1);
+  border-color: rgba(211, 47, 47, 0.3);
+  transform: translateX(5px);
+  box-shadow: 0 4px 20px rgba(211, 47, 47, 0.1);
 }
 
 .nav-icon {
@@ -195,15 +238,19 @@ html, body {
 .welcome-section {
   padding: 60px 20px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(255,215,0,0.05) 0%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(211, 47, 47, 0.05) 0%,
+    transparent 100%
+  );
 }
 
 .welcome-content h1 {
   font-size: 2.5rem;
   margin-bottom: 20px;
   color: var(--text);
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-  font-family: 'Cinzel', serif;
+  text-shadow: 0 0 20px rgba(211, 47, 47, 0.3);
+  font-family: "Cinzel", serif;
 }
 
 .welcome-content p {
@@ -233,8 +280,8 @@ html, body {
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(211, 47, 47, 0.15);
+  border-color: rgba(211, 47, 47, 0.3);
 }
 
 .stat-card h3 {
@@ -261,7 +308,7 @@ html, body {
   font-size: 2rem;
   margin-bottom: 40px;
   color: var(--text);
-  text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 15px rgba(211, 47, 47, 0.3);
 }
 
 .task-grid {
@@ -281,8 +328,8 @@ html, body {
 
 .task-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(211, 47, 47, 0.15);
+  border-color: rgba(211, 47, 47, 0.3);
 }
 
 .task-icon {
@@ -303,7 +350,7 @@ html, body {
 }
 
 .task-btn {
-  background: linear-gradient(135deg, #FFD700 0%, #FFC125 100%);
+  background: linear-gradient(135deg, #d32f2f 0%, #ef4444 100%);
   color: #000;
   border: none;
   padding: 12px 24px;
@@ -317,9 +364,9 @@ html, body {
 }
 
 .task-btn:hover {
-  background: linear-gradient(135deg, #FFC125 0%, #FFD700 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #d32f2f 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
 }
 
 /* === PROFILE MODAL STYLES === */
@@ -352,41 +399,46 @@ html, body {
     padding: 12px 15px;
     height: 60px;
   }
-  
+
+  .header-brand {
+    font-size: 1rem;
+    letter-spacing: 0.14em;
+  }
+
   .logo-img {
     height: 35px;
   }
-  
+
   .dashboard-main {
     padding-top: 60px;
   }
-  
+
   .welcome-section {
     padding: 40px 15px;
   }
-  
+
   .welcome-content h1 {
     font-size: 2rem;
   }
-  
+
   .welcome-content p {
     font-size: 1rem;
   }
-  
+
   .quick-stats {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .daily-tasks {
     padding: 40px 15px;
   }
-  
+
   .task-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .mobile-nav {
     width: 90%;
     max-width: 350px;
@@ -397,11 +449,11 @@ html, body {
   .stat-card {
     padding: 20px 15px;
   }
-  
+
   .task-card {
     padding: 20px;
   }
-  
+
   .task-icon {
     font-size: 2.5rem;
   }
