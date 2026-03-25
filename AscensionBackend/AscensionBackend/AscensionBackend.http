@@ -1,0 +1,6 @@
+@AscensionBackend_HostAddress = http://localhost:5118
+
+GET {{AscensionBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

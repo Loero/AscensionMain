@@ -1,0 +1,156 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\controllers\\userprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\controllers\\userprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\models\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\models\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\controllers\\logincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\controllers\\logincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\controllers\\regisztraciocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\controllers\\regisztraciocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\dtos\\logindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\dtos\\logindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|c:\\users\\mullerzsolt\\source\\repos\\ascensionbackend\\ascensionbackend\\models\\ascensiondbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B42C1995-D817-476D-8E59-F66ADDD86F70}|AscensionBackend\\AscensionBackend.csproj|solutionrelative:ascensionbackend\\models\\ascensiondbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UserProfile.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Models\\UserProfile.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Models\\UserProfile.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Models\\UserProfile.cs",
+              "RelativeToolTip": "AscensionBackend\\Models\\UserProfile.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAmwBwAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T08:48:09.601Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UserProfileController.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Controllers\\UserProfileController.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Controllers\\UserProfileController.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Controllers\\UserProfileController.cs",
+              "RelativeToolTip": "AscensionBackend\\Controllers\\UserProfileController.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAcwF8AAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T08:36:52.131Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "LoginController.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Controllers\\LoginController.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Controllers\\LoginController.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Controllers\\LoginController.cs",
+              "RelativeToolTip": "AscensionBackend\\Controllers\\LoginController.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwBcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T08:13:57.138Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "LoginDTO.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\DTOs\\LoginDTO.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\DTOs\\LoginDTO.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\DTOs\\LoginDTO.cs",
+              "RelativeToolTip": "AscensionBackend\\DTOs\\LoginDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T08:10:15.03Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Models\\User.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Models\\User.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Models\\User.cs",
+              "RelativeToolTip": "AscensionBackend\\Models\\User.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAA1wBIAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T08:05:29.57Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RegisztracioController.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Controllers\\RegisztracioController.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Controllers\\RegisztracioController.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Controllers\\RegisztracioController.cs",
+              "RelativeToolTip": "AscensionBackend\\Controllers\\RegisztracioController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T07:44:39.711Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Program.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Program.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Program.cs",
+              "RelativeToolTip": "AscensionBackend\\Program.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwCgAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T07:40:49.703Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AscensionDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Models\\AscensionDbContext.cs",
+              "RelativeDocumentMoniker": "AscensionBackend\\Models\\AscensionDbContext.cs",
+              "ToolTip": "C:\\Users\\MullerZsolt\\source\\repos\\AscensionBackend\\AscensionBackend\\Models\\AscensionDbContext.cs",
+              "RelativeToolTip": "AscensionBackend\\Models\\AscensionDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T07:39:49.81Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
