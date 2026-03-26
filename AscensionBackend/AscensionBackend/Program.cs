@@ -1,4 +1,3 @@
-
 using AscensionBackend.Models;
 using System.Text;
 using System.Security.Cryptography;
@@ -49,11 +48,9 @@ namespace AscensionBackend
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseCors("AllowOrigin");
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
