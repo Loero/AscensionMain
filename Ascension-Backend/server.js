@@ -260,6 +260,32 @@ const FDC_API_KEY =
 /* ====== SEGÉD ====== */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function getNutrientValueByIds(food, nutrientIds) {
+  const nutrients = Array.isArray(food?.foodNutrients)
+    ? food.foodNutrients
+    : [];
+
+  for (const id of nutrientIds) {
+    const match = nutrients.find((nutrient) => {
+      const nutrientId = Number(nutrient?.nutrientId ?? nutrient?.nutrient?.id);
+      return nutrientId === Number(id);
+    });
+
+    if (match) {
+      const value = Number(match.value ?? match.amount ?? 0);
+      if (Number.isFinite(value)) return value;
+    }
+  }
+
+  return 0;
+}
+
+function roundToOne(value) {
+  const num = Number(value || 0);
+  if (!Number.isFinite(num)) return 0;
+  return Math.round(num * 10) / 10;
+}
+
 function getWorkoutMet(workoutType) {
   const token = String(workoutType || "").toLowerCase();
 
@@ -906,6 +932,64 @@ app.delete("/api/profile/details", authenticateToken, async (req, res) => {
   }
 });
 /* ====== FOOD TRACKING ENDPOINTS ====== */
+
+// USDA FoodData Central keresés az étel-autocomplete mezőhöz
+app.get("/nutrition/search", async (req, res) => {
+  try {
+    const query = String(req.query?.query || "").trim();
+
+    if (query.length < 2) {
+      return res.json({
+        success: true,
+        items: [],
+      });
+    }
+
+    const params = new URLSearchParams({
+      api_key: FDC_API_KEY,
+      query,
+      pageSize: "10",
+      dataType: "Foundation,SR Legacy,Branded,Survey (FNDDS)",
+    });
+
+    const response = await fetch(
+      `https://api.nal.usda.gov/fdc/v1/foods/search?${params.toString()}`,
+    );
+
+    if (!response.ok) {
+      throw new Error(`USDA API hiba: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const foods = Array.isArray(payload?.foods) ? payload.foods : [];
+
+    const items = foods
+      .map((food) => ({
+        fdcId: food.fdcId,
+        description: String(food.description || "").trim(),
+        brandOwner: food.brandOwner || "",
+        dataType: food.dataType || "Unknown",
+        nutrients: {
+          energyKcal: roundToOne(getNutrientValueByIds(food, [1008])),
+          proteinG: roundToOne(getNutrientValueByIds(food, [1003])),
+          carbG: roundToOne(getNutrientValueByIds(food, [1005])),
+        },
+      }))
+      .filter((food) => food.description.length > 0);
+
+    res.json({
+      success: true,
+      items,
+    });
+  } catch (error) {
+    console.error("nutrition search error", error);
+    res.status(502).json({
+      success: false,
+      error: "Nem sikerült étel találatokat lekérni.",
+      items: [],
+    });
+  }
+});
 
 // Étel bejegyzés hozzáadása
 
