@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "Ascension.Admin.Wpf/1.0.0": {
+        "runtime": {
+          "Ascension.Admin.Wpf.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Ascension.Admin.Wpf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

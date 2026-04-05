@@ -6,7 +6,7 @@ import swaggerSpec from "./swagger.js";
 import { v2 as cloudinary } from "cloudinary";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Sequelize, DataTypes, Op, fn, col } from "sequelize";
+import { Sequelize, DataTypes, Op, fn, col, QueryTypes } from "sequelize";
 
 const app = express();
 app.use(
@@ -38,124 +38,155 @@ try {
   console.error("❌ Sequelize hiba:", err);
 }
 
-const User = sequelize.define("User", {
-  username: DataTypes.STRING,
-  email: DataTypes.STRING,
-  password_hash: DataTypes.STRING,
-}, { tableName: "users", timestamps: true, createdAt: "created_at", updatedAt: false });
-
-const UserProfile = sequelize.define("UserProfile", {
-  age: DataTypes.INTEGER,
-  weight_kg: DataTypes.FLOAT,
-  height_cm: DataTypes.INTEGER,
-  gender: DataTypes.STRING,
-  activity_multiplier: DataTypes.FLOAT,
-  goal: DataTypes.STRING,
-  experience: DataTypes.STRING,
-}, { tableName: "user_profile", timestamps: false });
-
-const FoodEntry = sequelize.define("FoodEntry", {
-  food_name: DataTypes.STRING,
-  grams: DataTypes.FLOAT,
-  calories: DataTypes.FLOAT,
-  protein_g: DataTypes.FLOAT,
-  carbs_g: DataTypes.FLOAT,
-  date: DataTypes.DATEONLY,
-}, { tableName: "food_entries", timestamps: true, createdAt: "created_at", updatedAt: false });
-
-const WorkoutEntry = sequelize.define("WorkoutEntry", {
-  workout_type: DataTypes.STRING,
-  exercise_name: DataTypes.STRING,
-  duration_minutes: DataTypes.INTEGER,
-  calories_burned: DataTypes.FLOAT,
-  sets: DataTypes.INTEGER,
-  reps: DataTypes.INTEGER,
-  weight_kg: DataTypes.FLOAT,
-  notes: DataTypes.TEXT,
-  date: DataTypes.DATEONLY,
-}, { tableName: "workout_entries", timestamps: true, createdAt: "created_at", updatedAt: false });
-
-const AlcoholEntry = sequelize.define("AlcoholEntry", {
-  drink_type: DataTypes.STRING,
-  amount_ml: DataTypes.FLOAT,
-  alcohol_percentage: DataTypes.FLOAT,
-  calories: DataTypes.FLOAT,
-  date: DataTypes.DATEONLY,
-}, { tableName: "alcohol_entries", timestamps: true, createdAt: "created_at", updatedAt: false });
-
-const SkinRoutine = sequelize.define("SkinRoutine", {
-  skin_type: DataTypes.STRING,
-  age_group: DataTypes.STRING,
-  concerns: DataTypes.TEXT,
-  goals: DataTypes.TEXT,
-  morning_routine: DataTypes.TEXT,
-  evening_routine: DataTypes.TEXT,
-  weekly_treatments: DataTypes.TEXT,
-  product_recommendations: DataTypes.TEXT,
-  tips: DataTypes.TEXT,
-  is_active: DataTypes.BOOLEAN,
-}, { tableName: "skin_routines", timestamps: true });
-
-const SkinRoutineTracking = sequelize.define("SkinRoutineTracking", {
-
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
+const User = sequelize.define(
+  "User",
+  {
+    username: DataTypes.STRING,
+    email: DataTypes.STRING,
+    password_hash: DataTypes.STRING,
   },
-
-  routine_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+  {
+    tableName: "users",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: false,
   },
+);
 
-  date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
+const UserProfile = sequelize.define(
+  "UserProfile",
+  {
+    age: DataTypes.INTEGER,
+    weight_kg: DataTypes.FLOAT,
+    height_cm: DataTypes.INTEGER,
+    gender: DataTypes.STRING,
+    activity_multiplier: DataTypes.FLOAT,
+    goal: DataTypes.STRING,
+    experience: DataTypes.STRING,
   },
+  { tableName: "user_profile", timestamps: false },
+);
 
-  morning_completed: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+const FoodEntry = sequelize.define(
+  "FoodEntry",
+  {
+    food_name: DataTypes.STRING,
+    grams: DataTypes.FLOAT,
+    calories: DataTypes.FLOAT,
+    protein_g: DataTypes.FLOAT,
+    carbs_g: DataTypes.FLOAT,
+    date: DataTypes.DATEONLY,
   },
-
-  evening_completed: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+  {
+    tableName: "food_entries",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: false,
   },
+);
 
-  morning_steps: {
-    type: DataTypes.TEXT
+const WorkoutEntry = sequelize.define(
+  "WorkoutEntry",
+  {
+    workout_type: DataTypes.STRING,
+    exercise_name: DataTypes.STRING,
+    duration_minutes: DataTypes.INTEGER,
+    calories_burned: DataTypes.FLOAT,
+    sets: DataTypes.INTEGER,
+    reps: DataTypes.INTEGER,
+    weight_kg: DataTypes.FLOAT,
+    notes: DataTypes.TEXT,
+    date: DataTypes.DATEONLY,
   },
-
-  evening_steps: {
-    type: DataTypes.TEXT
+  {
+    tableName: "workout_entries",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: false,
   },
+);
 
-  notes: {
-    type: DataTypes.TEXT
-  }
+const SkinRoutine = sequelize.define(
+  "SkinRoutine",
+  {
+    skin_type: DataTypes.STRING,
+    age_group: DataTypes.STRING,
+    concerns: DataTypes.TEXT,
+    goals: DataTypes.TEXT,
+    morning_routine: DataTypes.TEXT,
+    evening_routine: DataTypes.TEXT,
+    weekly_treatments: DataTypes.TEXT,
+    product_recommendations: DataTypes.TEXT,
+    tips: DataTypes.TEXT,
+    is_active: DataTypes.BOOLEAN,
+  },
+  { tableName: "skin_routines", timestamps: true },
+);
 
-}, {
-  tableName: "skin_routine_tracking",
-  timestamps: true
-});
+const SkinRoutineTracking = sequelize.define(
+  "SkinRoutineTracking",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+
+    routine_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+
+    date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+
+    morning_completed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+
+    evening_completed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+
+    morning_steps: {
+      type: DataTypes.TEXT,
+    },
+
+    evening_steps: {
+      type: DataTypes.TEXT,
+    },
+
+    notes: {
+      type: DataTypes.TEXT,
+    },
+  },
+  {
+    tableName: "skin_routine_tracking",
+    timestamps: true,
+  },
+);
 
 User.hasOne(UserProfile, { foreignKey: "user_id" });
 User.hasMany(FoodEntry, { foreignKey: "user_id" });
 User.hasMany(WorkoutEntry, { foreignKey: "user_id" });
-User.hasMany(AlcoholEntry, { foreignKey: "user_id" });
 User.hasMany(SkinRoutine, { foreignKey: "user_id" });
 
 SkinRoutine.hasMany(SkinRoutineTracking, {
-  foreignKey: "routine_id"
+  foreignKey: "routine_id",
 });
 
 SkinRoutineTracking.belongsTo(SkinRoutine, {
-  foreignKey: "routine_id"
+  foreignKey: "routine_id",
 });
 
 const JWT_SECRET = "ascension_secret_2026";
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || `${JWT_SECRET}_admin`;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
 /* ====== AUTH MIDDLEWARE ====== */
 function authenticateToken(req, res, next) {
@@ -190,6 +221,31 @@ function authenticateToken(req, res, next) {
   });
 }
 
+function authenticateAdminToken(req, res, next) {
+  const authHeader =
+    req.headers["authorization"] || req.headers["Authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: "Hianyzo admin token.",
+    });
+  }
+
+  jwt.verify(token, ADMIN_JWT_SECRET, (err, decoded) => {
+    if (err || decoded?.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        error: "Ervenytelen admin token.",
+      });
+    }
+
+    req.admin = decoded;
+    next();
+  });
+}
+
 /* ====== CLOUDINARY ====== */
 cloudinary.config({
   cloud_name: "dpgrckgpd",
@@ -203,6 +259,32 @@ const FDC_API_KEY =
 
 /* ====== SEGÉD ====== */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function getWorkoutMet(workoutType) {
+  const token = String(workoutType || "").toLowerCase();
+
+  if (
+    token.includes("leg") ||
+    token.includes("also") ||
+    token.includes("lab")
+  ) {
+    return 6.8;
+  }
+
+  if (token.includes("full") || token.includes("teljes")) {
+    return 6.3;
+  }
+
+  return 6.0;
+}
+
+function estimateWorkoutCalories(workoutType, durationMinutes, bodyWeightKg) {
+  const duration = Math.min(Math.max(Number(durationMinutes || 0), 5), 180);
+  const weight = Math.min(Math.max(Number(bodyWeightKg || 70), 40), 220);
+  const met = getWorkoutMet(workoutType);
+
+  return (met * 3.5 * weight * duration) / 200;
+}
 
 /**
  * @swagger
@@ -229,41 +311,34 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  *         description: JWT token visszaadása
  */
 app.post("/api/auth/login", async (req, res) => {
-
   const { emailOrUsername, password } = req.body;
 
   const user = await User.findOne({
     where: {
-      [Op.or]: [
-        { email: emailOrUsername },
-        { username: emailOrUsername }
-      ]
-    }
+      [Op.or]: [{ email: emailOrUsername }, { username: emailOrUsername }],
+    },
   });
 
-  if (!user)
-    return res.status(401).json({ error: "Hibás adatok" });
+  if (!user) return res.status(401).json({ error: "Hibás adatok" });
 
   const match = await bcrypt.compare(password, user.password_hash);
 
-  if (!match)
-    return res.status(401).json({ error: "Hibás adatok" });
+  if (!match) return res.status(401).json({ error: "Hibás adatok" });
 
   const token = jwt.sign(
     {
       userId: user.id,
       username: user.username,
-      email: user.email
+      email: user.email,
     },
     JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 
   res.json({
     success: true,
-    token
+    token,
   });
-
 });
 
 /**
@@ -301,31 +376,28 @@ app.post("/api/auth/login", async (req, res) => {
  *         description: Sikeres regisztráció
  */
 app.post("/api/auth/register", async (req, res) => {
-
   const { username, email, password } = req.body;
 
   const exists = await User.findOne({
     where: {
-      [Op.or]: [{ email }, { username }]
-    }
+      [Op.or]: [{ email }, { username }],
+    },
   });
 
-  if (exists)
-    return res.status(409).json({ error: "User létezik" });
+  if (exists) return res.status(409).json({ error: "User létezik" });
 
   const hash = await bcrypt.hash(password, 10);
 
   const user = await User.create({
     username,
     email,
-    password_hash: hash
+    password_hash: hash,
   });
 
   res.json({
     success: true,
-    user
+    user,
   });
-
 });
 
 /* ====== PROFILE ENDPOINT ====== */
@@ -513,19 +585,16 @@ app.post("/api/auth/register", async (req, res) => {
  *         description: Szerver hiba
  */
 app.get("/api/profile", authenticateToken, async (req, res) => {
+  // (Alkohol statisztikák eltávolítva)
 
-  
-    // (Alkohol statisztikák eltávolítva)
-
-    try {
-
+  try {
     const userId = req.user.userId;
 
     const now = new Date();
 
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-    startOfWeek.setHours(0,0,0,0);
+    startOfWeek.setHours(0, 0, 0, 0);
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -538,14 +607,14 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
         [fn("COUNT", col("id")), "entries"],
         [fn("SUM", col("calories")), "total_calories"],
         [fn("SUM", col("protein_g")), "total_protein"],
-        [fn("SUM", col("carbs_g")), "total_carbs"]
+        [fn("SUM", col("carbs_g")), "total_carbs"],
       ],
       where: {
         user_id: userId,
         date: {
-          [Op.gte]: startOfWeek
-        }
-      }
+          [Op.gte]: startOfWeek,
+        },
+      },
     });
 
     const foodMonthStats = await FoodEntry.findOne({
@@ -553,14 +622,14 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
         [fn("COUNT", col("id")), "entries"],
         [fn("SUM", col("calories")), "total_calories"],
         [fn("SUM", col("protein_g")), "total_protein"],
-        [fn("SUM", col("carbs_g")), "total_carbs"]
+        [fn("SUM", col("carbs_g")), "total_carbs"],
       ],
       where: {
         user_id: userId,
         date: {
-          [Op.gte]: startOfMonth
-        }
-      }
+          [Op.gte]: startOfMonth,
+        },
+      },
     });
 
     const foodTotalStats = await FoodEntry.findOne({
@@ -568,175 +637,128 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
         [fn("COUNT", col("id")), "entries"],
         [fn("SUM", col("calories")), "total_calories"],
         [fn("SUM", col("protein_g")), "total_protein"],
-        [fn("SUM", col("carbs_g")), "total_carbs"]
+        [fn("SUM", col("carbs_g")), "total_carbs"],
       ],
       where: {
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
 
     const recentFoodEntries = await FoodEntry.findAll({
-
       where: { user_id: userId },
 
       order: [
         ["date", "DESC"],
-        ["created_at", "DESC"]
+        ["created_at", "DESC"],
       ],
 
-      limit: 5
-
+      limit: 5,
     });
-
 
     /* ======================
        WORKOUT STATS
     ======================*/
 
     const workoutWeekStats = await WorkoutEntry.findOne({
-
       attributes: [
-
         [fn("COUNT", col("id")), "entries"],
 
         [fn("SUM", col("duration_minutes")), "total_duration"],
 
         [fn("SUM", col("calories_burned")), "total_calories"],
 
-        [fn("SUM", col("sets")), "total_sets"]
-
+        [fn("SUM", col("sets")), "total_sets"],
       ],
 
       where: {
-
         user_id: userId,
 
         date: {
-
-          [Op.gte]: startOfWeek
-
-        }
-
-      }
-
+          [Op.gte]: startOfWeek,
+        },
+      },
     });
-
 
     const workoutMonthStats = await WorkoutEntry.findOne({
-
       attributes: [
-
         [fn("COUNT", col("id")), "entries"],
 
         [fn("SUM", col("duration_minutes")), "total_duration"],
 
         [fn("SUM", col("calories_burned")), "total_calories"],
 
-        [fn("SUM", col("sets")), "total_sets"]
-
+        [fn("SUM", col("sets")), "total_sets"],
       ],
 
       where: {
-
         user_id: userId,
 
         date: {
-
-          [Op.gte]: startOfMonth
-
-        }
-
-      }
-
+          [Op.gte]: startOfMonth,
+        },
+      },
     });
 
-
     const workoutTotalStats = await WorkoutEntry.findOne({
-
       attributes: [
-
         [fn("COUNT", col("id")), "entries"],
 
         [fn("SUM", col("duration_minutes")), "total_duration"],
 
         [fn("SUM", col("calories_burned")), "total_calories"],
 
-        [fn("SUM", col("sets")), "total_sets"]
-
+        [fn("SUM", col("sets")), "total_sets"],
       ],
 
       where: {
-
-        user_id: userId
-
-      }
-
+        user_id: userId,
+      },
     });
 
-
     const recentWorkoutEntries = await WorkoutEntry.findAll({
-
       where: { user_id: userId },
 
       order: [
-
         ["date", "DESC"],
 
-        ["created_at", "DESC"]
-
+        ["created_at", "DESC"],
       ],
 
-      limit: 5
-
+      limit: 5,
     });
-
 
     console.log("profil stat kész");
 
-
     res.json({
-
       success: true,
 
       food: {
-
         week: foodWeekStats,
 
         month: foodMonthStats,
 
         total: foodTotalStats,
 
-        recent: recentFoodEntries
-
+        recent: recentFoodEntries,
       },
 
       workout: {
-
         week: workoutWeekStats,
 
         month: workoutMonthStats,
 
         total: workoutTotalStats,
 
-        recent: recentWorkoutEntries
-
-      }
-
+        recent: recentWorkoutEntries,
+      },
     });
-
-
   } catch (err) {
-
     console.error(err);
 
     res.status(500).json({
-
-      error: "profil stat hiba"
-
+      error: "profil stat hiba",
     });
-
   }
-
 });
 
 // Személyes adatok mentése a felhasználó profiljához (életkor, súly, magasság stb.)
@@ -778,13 +800,11 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
  *                 example: beginner
  */
 app.post("/api/profile/details", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
-    const { age, weight, height, gender, activity, goal, experience } = req.body;
-
+    const { age, weight, height, gender, activity, goal, experience } =
+      req.body;
 
     /* konverziók */
 
@@ -808,11 +828,9 @@ app.post("/api/profile/details", authenticateToken, async (req, res) => {
         ? parseFloat(activity)
         : null;
 
-
     /* ORM UPSERT */
 
     await UserProfile.upsert({
-
       user_id: userId,
 
       age: ageInt,
@@ -827,37 +845,25 @@ app.post("/api/profile/details", authenticateToken, async (req, res) => {
 
       goal: goal || null,
 
-      experience: experience || null
-
+      experience: experience || null,
     });
-
 
     console.log("profil mentve", userId);
 
-
     res.json({
-
       success: true,
 
-      message: "Profil adatok mentve"
-
+      message: "Profil adatok mentve",
     });
-
-
   } catch (error) {
-
     console.error("profile save error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // DELETE /api/profile/details - Profil adatok törlése
@@ -871,687 +877,34 @@ app.post("/api/profile/details", authenticateToken, async (req, res) => {
  *       - bearerAuth: []
  */
 app.delete("/api/profile/details", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
-
     const deletedCount = await UserProfile.destroy({
-
       where: {
-
-        user_id: userId
-
-      }
-
+        user_id: userId,
+      },
     });
-
 
     console.log("profil törölve", userId);
 
-
     res.json({
-
       success: true,
 
       deletedRows: deletedCount,
 
-      message: "Profil adatok törölve"
-
+      message: "Profil adatok törölve",
     });
-
-
   } catch (error) {
-
     console.error("profile delete error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
-/* ====== ALCOHOL TRACKING ENDPOINTS ====== */
-
-// Alkohol bejegyzés hozzáadása
-
-/**
- * @swagger
- * /api/alcohol/add:
- *   post:
- *     summary: Alkohol bejegyzés hozzáadása
- *     description: Új alkohol fogyasztás rögzítése mennyiséggel és kalóriával
- *     tags:
- *       - Alcohol
- *
- *     security:
- *       - bearerAuth: []
- *
- *     requestBody:
- *       required: true
- *
- *       content:
- *         application/json:
- *
- *           schema:
- *             type: object
- *
- *             required:
- *               - drinkType
- *               - amountMl
- *               - alcoholPercentage
- *               - calories
- *               - date
- *
- *             properties:
- *
- *               drinkType:
- *                 type: string
- *                 example: beer
- *
- *               amountMl:
- *                 type: number
- *                 example: 500
- *
- *               alcoholPercentage:
- *                 type: number
- *                 example: 5
- *
- *               calories:
- *                 type: number
- *                 example: 210
- *
- *               date:
- *                 type: string
- *                 format: date
- *                 example: 2026-03-29
- *
- *     responses:
- *
- *       200:
- *         description: sikeres mentés
- *
- *         content:
- *           application/json:
- *
- *             schema:
- *               type: object
- *
- *               properties:
- *
- *                 success:
- *                   type: boolean
- *                   example: true
- *
- *                 message:
- *                   type: string
- *                   example: Alkohol mentve
- *
- *                 entryId:
- *                   type: integer
- *                   example: 7
- *
- *       400:
- *         description: hiányzó mező
- *
- *       401:
- *         description: nincs token
- *
- *       500:
- *         description: szerver hiba
- */
-app.post("/api/alcohol/add", authenticateToken, async (req, res) => {
-
-  try {
-
-    const userId = req.user.userId;
-
-    const { drinkType, amountMl, alcoholPercentage, calories, date } = req.body;
-
-
-    /* validáció */
-
-    if (
-      !drinkType ||
-      !amountMl ||
-      alcoholPercentage === undefined ||
-      !calories ||
-      !date
-    ) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        error: "Minden mező kötelező"
-
-      });
-
-    }
-
-
-    /* ORM insert */
-
-    const entry = await AlcoholEntry.create({
-
-      user_id: userId,
-
-      drink_type: drinkType,
-
-      amount_ml: amountMl,
-
-      alcohol_percentage: alcoholPercentage,
-
-      calories: calories,
-
-      date: date
-
-    });
-
-
-    console.log("alcohol mentve", entry.id);
-
-
-    res.json({
-
-      success: true,
-
-      message: "Alkohol mentve",
-
-      entryId: entry.id
-
-    });
-
-
-  } catch (error) {
-
-    console.error("alcohol create error", error);
-
-    res.status(500).json({
-
-      success: false,
-
-      error: error.message
-
-    });
-
-  }
-
-});
-
-// Alkohol bejegyzések lekérése (adott dátum vagy időszak)
-/**
- * @swagger
- * /api/alcohol/entries:
- *   get:
- *     summary: Alkohol bejegyzések lekérése
- *     description: A felhasználó alkohol fogyasztási naplója, opcionális dátum szűréssel
- *     tags:
- *       - Alcohol
- *
- *     security:
- *       - bearerAuth: []
- *
- *     parameters:
- *
- *       - in: query
- *         name: date
- *         schema:
- *           type: string
- *           format: date
- *         description: Egy adott nap bejegyzései
- *         example: 2026-03-29
- *
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Időintervallum kezdete
- *         example: 2026-03-01
- *
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Időintervallum vége
- *         example: 2026-03-31
- *
- *     responses:
- *
- *       200:
- *         description: Lista sikeresen lekérve
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *
- *               properties:
- *
- *                 success:
- *                   type: boolean
- *                   example: true
- *
- *                 entries:
- *                   type: array
- *
- *                   items:
- *                     type: object
- *
- *                     properties:
- *
- *                       id:
- *                         type: integer
- *                         example: 5
- *
- *                       user_id:
- *                         type: integer
- *                         example: 1
- *
- *                       drink_type:
- *                         type: string
- *                         example: beer
- *
- *                       amount_ml:
- *                         type: number
- *                         example: 500
- *
- *                       alcohol_percentage:
- *                         type: number
- *                         example: 5
- *
- *                       calories:
- *                         type: number
- *                         example: 210
- *
- *                       date:
- *                         type: string
- *                         format: date
- *                         example: 2026-03-29
- *
- *                       created_at:
- *                         type: string
- *                         format: date-time
- *
- *       401:
- *         description: nincs token
- *
- *       500:
- *         description: szerver hiba
- */
-
-
-app.get("/api/alcohol/entries", authenticateToken, async (req, res) => {
-
-  try {
-
-    const userId = req.user.userId;
-
-    const { date, startDate, endDate } = req.query;
-
-
-    /* WHERE feltétel építése */
-
-    const whereClause = {
-
-      user_id: userId
-
-    };
-
-
-    if (date) {
-
-      whereClause.date = date;
-
-    }
-
-    else if (startDate && endDate) {
-
-      whereClause.date = {
-
-        [Op.between]: [startDate, endDate]
-
-      };
-
-    }
-
-
-    /* ORM SELECT */
-
-    const entries = await AlcoholEntry.findAll({
-
-      where: whereClause,
-
-      order: [
-
-        ["date", "DESC"],
-
-        ["created_at", "DESC"]
-
-      ]
-
-    });
-
-
-    res.json({
-
-      success: true,
-
-      entries
-
-    });
-
-
-  } catch (error) {
-
-    console.error("alcohol list error", error);
-
-    res.status(500).json({
-
-      success: false,
-
-      error: error.message
-
-    });
-
-  }
-
-});
-// Alkohol bejegyzés törlése
-/**
- * @swagger
- * /api/alcohol/{id}:
- *   delete:
- *     summary: Alkohol bejegyzés törlése
- *     description: A felhasználó saját alkohol bejegyzésének törlése ID alapján
- *     tags:
- *       - Alcohol
- *
- *     security:
- *       - bearerAuth: []
- *
- *     parameters:
- *
- *       - in: path
- *         name: id
- *         required: true
- *
- *         schema:
- *           type: integer
- *
- *         description: törlendő alkohol bejegyzés ID
- *
- *         example: 8
- *
- *     responses:
- *
- *       200:
- *         description: sikeres törlés
- *
- *         content:
- *           application/json:
- *
- *             schema:
- *               type: object
- *
- *               properties:
- *
- *                 success:
- *                   type: boolean
- *                   example: true
- *
- *                 message:
- *                   type: string
- *                   example: Bejegyzés törölve
- *
- *       404:
- *         description: nincs ilyen rekord vagy nem a felhasználóé
- *
- *       401:
- *         description: nincs token
- *
- *       500:
- *         description: szerver hiba
- */
-app.delete("/api/alcohol/:id", authenticateToken, async (req, res) => {
-
-  try {
-
-    const userId = req.user.userId;
-
-    const entryId = req.params.id;
-
-
-    /* törlés csak saját rekordra */
-
-    const deletedCount = await AlcoholEntry.destroy({
-
-      where: {
-
-        id: entryId,
-
-        user_id: userId
-
-      }
-
-    });
-
-
-    /* ha nem létezett vagy nem a user-é */
-
-    if (deletedCount === 0) {
-
-      return res.status(404).json({
-
-        success: false,
-
-        error: "Bejegyzés nem található"
-
-      });
-
-    }
-
-
-    console.log("alcohol törölve", entryId);
-
-
-    res.json({
-
-      success: true,
-
-      message: "Bejegyzés törölve"
-
-    });
-
-
-  } catch (error) {
-
-    console.error("alcohol delete error", error);
-
-    res.status(500).json({
-
-      success: false,
-
-      error: error.message
-
-    });
-
-  }
-
-});
-// Alkohol statisztikák (összes kalória, ml stb. adott időszakra)
-/**
- * @swagger
- * /api/alcohol/stats:
- *   get:
- *     summary: Alkohol statisztikák lekérése
- *     description: Alkohol fogyasztás összesített statisztikái opcionális dátum szűréssel
- *     tags:
- *       - Alcohol
- *
- *     security:
- *       - bearerAuth: []
- *
- *     parameters:
- *
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: statisztika kezdő dátuma
- *         example: 2026-03-01
- *
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: statisztika záró dátuma
- *         example: 2026-03-31
- *
- *     responses:
- *
- *       200:
- *         description: statisztika sikeresen lekérve
- *
- *         content:
- *           application/json:
- *
- *             schema:
- *               type: object
- *
- *               properties:
- *
- *                 success:
- *                   type: boolean
- *                   example: true
- *
- *                 stats:
- *                   type: object
- *
- *                   properties:
- *
- *                     totalEntries:
- *                       type: integer
- *                       example: 12
- *
- *                     totalMl:
- *                       type: number
- *                       example: 3500
- *
- *                     totalCalories:
- *                       type: number
- *                       example: 1850
- *
- *                     avgAlcoholPercentage:
- *                       type: number
- *                       example: 6.25
- *
- *       401:
- *         description: nincs token
- *
- *       500:
- *         description: szerver hiba
- */
-app.get("/api/alcohol/stats", authenticateToken, async (req, res) => {
-
-  try {
-
-    const userId = req.user.userId;
-
-    const { startDate, endDate } = req.query;
-
-
-    /* WHERE feltétel */
-
-    const whereClause = {
-
-      user_id: userId
-
-    };
-
-
-    if (startDate && endDate) {
-
-      whereClause.date = {
-
-        [Op.between]: [startDate, endDate]
-
-      };
-
-    }
-
-
-    /* ORM aggregáció */
-
-    const stats = await AlcoholEntry.findOne({
-
-      attributes: [
-
-        [fn("COUNT", col("id")), "total_entries"],
-
-        [fn("SUM", col("amount_ml")), "total_ml"],
-
-        [fn("SUM", col("calories")), "total_calories"],
-
-        [fn("AVG", col("alcohol_percentage")), "avg_alcohol_percentage"]
-
-      ],
-
-      where: whereClause,
-
-      raw: true
-
-    });
-
-
-    res.json({
-
-      success: true,
-
-      stats: {
-
-        totalEntries: stats.total_entries || 0,
-
-        totalMl: stats.total_ml || 0,
-
-        totalCalories: stats.total_calories || 0,
-
-        avgAlcoholPercentage:
-
-          stats.avg_alcohol_percentage
-            ? Number(stats.avg_alcohol_percentage).toFixed(2)
-            : 0
-
-      }
-
-    });
-
-
-  } catch (error) {
-
-    console.error("alcohol stats error", error);
-
-    res.status(500).json({
-
-      success: false,
-
-      error: error.message
-
-    });
-
-  }
-
-});
-
 /* ====== FOOD TRACKING ENDPOINTS ====== */
 
 // Étel bejegyzés hozzáadása
@@ -1643,47 +996,31 @@ app.get("/api/alcohol/stats", authenticateToken, async (req, res) => {
  *         description: Szerver hiba
  */
 app.post("/api/food/add", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const { foodName, grams, calories, proteinG, carbsG, date } = req.body;
 
-
     /* validáció */
 
     if (
-
       !foodName ||
-
       !grams ||
-
       calories === undefined ||
-
       proteinG === undefined ||
-
       carbsG === undefined ||
-
       !date
-
     ) {
-
       return res.status(400).json({
-
         success: false,
 
-        error: "Minden mező kötelező"
-
+        error: "Minden mező kötelező",
       });
-
     }
-
 
     /* ORM insert */
 
     const entry = await FoodEntry.create({
-
       user_id: userId,
 
       food_name: foodName,
@@ -1696,39 +1033,27 @@ app.post("/api/food/add", authenticateToken, async (req, res) => {
 
       carbs_g: carbsG,
 
-      date: date
-
+      date: date,
     });
-
 
     console.log("food mentve", entry.id);
 
-
     res.json({
-
       success: true,
 
       message: "Étel mentve",
 
-      entryId: entry.id
-
+      entryId: entry.id,
     });
-
-
   } catch (error) {
-
     console.error("food create error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 /* ====== WORKOUT TRACKING ENDPOINTS ====== */
@@ -1788,13 +1113,10 @@ app.post("/api/food/add", authenticateToken, async (req, res) => {
  *         description: Sikeres mentés
  */
 app.post("/api/workout", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const {
-
       workoutType,
       exerciseName,
       durationMinutes,
@@ -1803,47 +1125,71 @@ app.post("/api/workout", authenticateToken, async (req, res) => {
       reps,
       weightKg,
       notes,
-      date
-
+      date,
     } = req.body;
-
 
     /* validáció */
 
-    if (
-
-      !workoutType ||
-      !exerciseName ||
-      !durationMinutes ||
-      !caloriesBurned ||
-      !date
-
-    ) {
-
+    if (!workoutType || !exerciseName || !durationMinutes || !date) {
       return res.status(400).json({
-
         success: false,
 
-        error: "Hiányzó kötelező mező"
-
+        error: "Hiányzó kötelező mező",
       });
-
     }
 
+    const durationMinutesNum = Number(durationMinutes);
+    if (
+      !Number.isFinite(durationMinutesNum) ||
+      durationMinutesNum <= 0 ||
+      durationMinutesNum > 300
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Ervénytelen edzésidő.",
+      });
+    }
+
+    const profile = await UserProfile.findOne({
+      where: { user_id: userId },
+      attributes: ["weight_kg"],
+    });
+
+    const weightForCalc = Number(profile?.weight_kg || weightKg || 70);
+    const estimatedCalories = estimateWorkoutCalories(
+      workoutType,
+      durationMinutesNum,
+      weightForCalc,
+    );
+
+    let caloriesBurnedNum = Number(caloriesBurned);
+    if (!Number.isFinite(caloriesBurnedNum) || caloriesBurnedNum <= 0) {
+      caloriesBurnedNum = estimatedCalories;
+    }
+
+    const minReasonableCalories = durationMinutesNum * 2;
+    const maxReasonableCalories = durationMinutesNum * 18;
+    if (
+      caloriesBurnedNum < minReasonableCalories ||
+      caloriesBurnedNum > maxReasonableCalories
+    ) {
+      caloriesBurnedNum = estimatedCalories;
+    }
+
+    const safeCaloriesBurned = Math.round(caloriesBurnedNum * 10) / 10;
 
     /* ORM insert */
 
     const workout = await WorkoutEntry.create({
-
       user_id: userId,
 
       workout_type: workoutType,
 
       exercise_name: exerciseName,
 
-      duration_minutes: durationMinutes,
+      duration_minutes: Math.round(durationMinutesNum),
 
-      calories_burned: caloriesBurned,
+      calories_burned: safeCaloriesBurned,
 
       sets: sets || null,
 
@@ -1853,39 +1199,27 @@ app.post("/api/workout", authenticateToken, async (req, res) => {
 
       notes: notes || null,
 
-      date: date
-
+      date: date,
     });
-
 
     console.log("workout mentve", workout.id);
 
-
     res.json({
-
       success: true,
 
       message: "Edzés mentve",
 
-      entryId: workout.id
-
+      entryId: workout.id,
     });
-
-
   } catch (error) {
-
     console.error("workout create error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // GET /api/workout - Edzés bejegyzések lekérése
@@ -1966,60 +1300,41 @@ app.post("/api/workout", authenticateToken, async (req, res) => {
  */
 
 app.get("/api/workout", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const { startDate, endDate } = req.query;
 
-
     /* WHERE feltétel */
 
     const whereClause = {
-
-      user_id: userId
-
+      user_id: userId,
     };
 
-
     if (startDate && endDate) {
-
       whereClause.date = {
-
-        [Op.between]: [startDate, endDate]
-
+        [Op.between]: [startDate, endDate],
       };
-
     }
-
 
     /* ORM SELECT */
 
     const entries = await WorkoutEntry.findAll({
-
       where: whereClause,
 
       order: [
-
         ["date", "DESC"],
 
-        ["created_at", "DESC"]
-
-      ]
-
+        ["created_at", "DESC"],
+      ],
     });
-
 
     console.log("workout lista", entries.length);
 
-
     res.json({
-
       success: true,
 
-      entries: entries.map(entry => ({
-
+      entries: entries.map((entry) => ({
         id: entry.id,
 
         workoutType: entry.workout_type,
@@ -2034,37 +1349,24 @@ app.get("/api/workout", authenticateToken, async (req, res) => {
 
         reps: entry.reps,
 
-        weightKg:
-
-          entry.weight_kg
-            ? Number(entry.weight_kg).toFixed(1)
-            : null,
+        weightKg: entry.weight_kg ? Number(entry.weight_kg).toFixed(1) : null,
 
         notes: entry.notes,
 
         date: entry.date,
 
-        createdAt: entry.created_at
-
-      }))
-
+        createdAt: entry.created_at,
+      })),
     });
-
-
   } catch (error) {
-
     console.error("workout list error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 // DELETE /api/workout - Összes edzés bejegyzés törlése (teszteléshez)
 /**
@@ -2075,53 +1377,35 @@ app.get("/api/workout", authenticateToken, async (req, res) => {
  *     tags: [Workout]
  */
 app.delete("/api/workout", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
-
     console.log("összes workout törlés", userId);
-
 
     /* ORM bulk delete */
 
     const deletedCount = await WorkoutEntry.destroy({
-
       where: {
-
-        user_id: userId
-
-      }
-
+        user_id: userId,
+      },
     });
 
-
     res.json({
-
       success: true,
 
       message: "Edzések törölve",
 
-      deletedCount
-
+      deletedCount,
     });
-
-
   } catch (error) {
-
     console.error("workout bulk delete error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // DELETE /api/workout/:id - Edzés bejegyzés törlése
@@ -2137,73 +1421,49 @@ app.delete("/api/workout", authenticateToken, async (req, res) => {
  *         required: true
  */
 app.delete("/api/workout/:id", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const entryId = req.params.id;
 
-
     console.log("workout törlés", { userId, entryId });
-
 
     /* ORM delete */
 
     const deletedCount = await WorkoutEntry.destroy({
-
       where: {
-
         id: entryId,
 
-        user_id: userId
-
-      }
-
+        user_id: userId,
+      },
     });
-
 
     /* ha nincs ilyen rekord */
 
     if (deletedCount === 0) {
-
       return res.status(404).json({
-
         success: false,
 
-        error: "Nem található ilyen edzés"
-
+        error: "Nem található ilyen edzés",
       });
-
     }
-
 
     console.log("workout törölve", entryId);
 
-
     res.json({
-
       success: true,
 
-      message: "Edzés törölve"
-
+      message: "Edzés törölve",
     });
-
-
   } catch (error) {
-
     console.error("workout delete error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // Étel bejegyzések lekérése (adott dátum vagy időszak)
@@ -2313,80 +1573,51 @@ app.delete("/api/workout/:id", authenticateToken, async (req, res) => {
  */
 
 app.get("/api/food/entries", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const { date, startDate, endDate } = req.query;
 
-
     /* WHERE feltétel */
 
     const whereClause = {
-
-      user_id: userId
-
+      user_id: userId,
     };
 
-
     if (date) {
-
       whereClause.date = date;
-
-    }
-
-    else if (startDate && endDate) {
-
+    } else if (startDate && endDate) {
       whereClause.date = {
-
-        [Op.between]: [startDate, endDate]
-
+        [Op.between]: [startDate, endDate],
       };
-
     }
-
 
     /* ORM SELECT */
 
     const entries = await FoodEntry.findAll({
-
       where: whereClause,
 
       order: [
-
         ["date", "DESC"],
 
-        ["created_at", "DESC"]
-
-      ]
-
+        ["created_at", "DESC"],
+      ],
     });
-
 
     res.json({
-
       success: true,
 
-      entries
-
+      entries,
     });
-
-
   } catch (error) {
-
     console.error("food list error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // Étel bejegyzés törlése
@@ -2444,66 +1675,43 @@ app.get("/api/food/entries", authenticateToken, async (req, res) => {
  *         description: szerver hiba
  */
 app.delete("/api/food/:id", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const entryId = req.params.id;
 
-
     const deletedCount = await FoodEntry.destroy({
-
       where: {
-
         id: entryId,
 
-        user_id: userId
-
-      }
-
+        user_id: userId,
+      },
     });
 
-
     if (deletedCount === 0) {
-
       return res.status(404).json({
-
         success: false,
 
-        error: "Bejegyzés nem található"
-
+        error: "Bejegyzés nem található",
       });
-
     }
-
 
     console.log("food törölve", entryId);
 
-
     res.json({
-
       success: true,
 
-      message: "Étel bejegyzés törölve"
-
+      message: "Étel bejegyzés törölve",
     });
-
-
   } catch (error) {
-
     console.error("food delete error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 /* ====== SKIN ROUTINE ENDPOINTS ====== */
@@ -2668,272 +1876,152 @@ app.delete("/api/food/:id", authenticateToken, async (req, res) => {
  *         description: szerver hiba
  */
 app.post("/api/skin/save-routine", authenticateToken, async (req, res) => {
-
   try {
-
     const { answers, routine } = req.body;
 
     const userId = req.user.userId;
 
-
-    const normalizeArray = (value) =>
-      Array.isArray(value) ? value : [];
-
+    const normalizeArray = (value) => (Array.isArray(value) ? value : []);
 
     const normalizeJsonString = (value) => {
-
       try {
-
         return JSON.stringify(JSON.parse(value || "[]"));
-
       } catch {
-
         return JSON.stringify([]);
-
       }
-
     };
 
-
     const payload = {
+      skin_type: answers?.skin_type || routine?.skin_type || "normal",
 
-      skin_type:
-        answers?.skin_type ||
-        routine?.skin_type ||
-        "normal",
-
-      age_group:
-        answers?.age ||
-        routine?.age_group ||
-        "25_35",
+      age_group: answers?.age || routine?.age_group || "25_35",
 
       concerns: JSON.stringify(
-        normalizeArray(
-          answers?.concerns ||
-          routine?.concerns
-        )
+        normalizeArray(answers?.concerns || routine?.concerns),
       ),
 
-      goals: JSON.stringify(
-        normalizeArray(
-          answers?.goals ||
-          routine?.goals
-        )
-      ),
+      goals: JSON.stringify(normalizeArray(answers?.goals || routine?.goals)),
 
-      morning_routine: JSON.stringify(
-        normalizeArray(
-          routine?.morning_routine
-        )
-      ),
+      morning_routine: JSON.stringify(normalizeArray(routine?.morning_routine)),
 
-      evening_routine: JSON.stringify(
-        normalizeArray(
-          routine?.evening_routine
-        )
-      ),
+      evening_routine: JSON.stringify(normalizeArray(routine?.evening_routine)),
 
       weekly_treatments: JSON.stringify(
-        normalizeArray(
-          routine?.weekly_treatments
-        )
+        normalizeArray(routine?.weekly_treatments),
       ),
 
       product_recommendations: JSON.stringify(
-        normalizeArray(
-          routine?.product_recommendations
-        )
+        normalizeArray(routine?.product_recommendations),
       ),
 
-      tips: JSON.stringify(
-        normalizeArray(
-          routine?.tips
-        )
-      )
-
+      tips: JSON.stringify(normalizeArray(routine?.tips)),
     };
-
 
     /* aktív rutin keresése */
 
     const existing = await SkinRoutine.findOne({
-
       where: {
-
         user_id: userId,
 
-        is_active: true
-
+        is_active: true,
       },
 
       order: [
-
         ["updatedAt", "DESC"],
 
-        ["createdAt", "DESC"]
-
-      ]
-
+        ["createdAt", "DESC"],
+      ],
     });
-
 
     /* ha van már rutin */
 
     if (existing) {
-
       const hasNoChanges =
-
-        String(existing.skin_type || "")
-          === String(payload.skin_type)
-
-        &&
-
-        String(existing.age_group || "")
-          === String(payload.age_group)
-
-        &&
-
-        normalizeJsonString(existing.concerns)
-          === payload.concerns
-
-        &&
-
-        normalizeJsonString(existing.goals)
-          === payload.goals
-
-        &&
-
-        normalizeJsonString(existing.morning_routine)
-          === payload.morning_routine
-
-        &&
-
-        normalizeJsonString(existing.evening_routine)
-          === payload.evening_routine
-
-        &&
-
-        normalizeJsonString(existing.weekly_treatments)
-          === payload.weekly_treatments
-
-        &&
-
-        normalizeJsonString(existing.product_recommendations)
-          === payload.product_recommendations
-
-        &&
-
-        normalizeJsonString(existing.tips)
-          === payload.tips;
-
-
+        String(existing.skin_type || "") === String(payload.skin_type) &&
+        String(existing.age_group || "") === String(payload.age_group) &&
+        normalizeJsonString(existing.concerns) === payload.concerns &&
+        normalizeJsonString(existing.goals) === payload.goals &&
+        normalizeJsonString(existing.morning_routine) ===
+          payload.morning_routine &&
+        normalizeJsonString(existing.evening_routine) ===
+          payload.evening_routine &&
+        normalizeJsonString(existing.weekly_treatments) ===
+          payload.weekly_treatments &&
+        normalizeJsonString(existing.product_recommendations) ===
+          payload.product_recommendations &&
+        normalizeJsonString(existing.tips) === payload.tips;
 
       if (hasNoChanges) {
-
         return res.json({
-
           success: true,
 
           unchanged: true,
 
-          routine_id: existing.id
-
+          routine_id: existing.id,
         });
-
       }
-
 
       /* update */
 
       await existing.update({
-
         ...payload,
 
-        is_active: true
-
+        is_active: true,
       });
-
 
       /* többi rutin deaktiválása */
 
       await SkinRoutine.update(
-
         {
-
-          is_active: false
-
+          is_active: false,
         },
 
         {
-
           where: {
-
             user_id: userId,
 
             id: {
-
-              [Op.ne]: existing.id
-
-            }
-
-          }
-
-        }
-
+              [Op.ne]: existing.id,
+            },
+          },
+        },
       );
 
-
       return res.json({
-
         success: true,
 
         updated: true,
 
-        routine_id: existing.id
-
+        routine_id: existing.id,
       });
-
     }
-
 
     /* új rutin */
 
     const created = await SkinRoutine.create({
-
       user_id: userId,
 
       ...payload,
 
-      is_active: true
-
+      is_active: true,
     });
 
-
     return res.json({
-
       success: true,
 
       inserted: true,
 
-      routine_id: created.id
-
+      routine_id: created.id,
     });
-
-
   } catch (error) {
-
     console.error("skin save error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // Rutin lekérése
@@ -3064,104 +2152,67 @@ app.post("/api/skin/save-routine", authenticateToken, async (req, res) => {
  *         description: Szerver hiba
  */
 app.get("/api/skin/routine", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
-
     const routine = await SkinRoutine.findOne({
-
       where: {
-
         user_id: userId,
 
-        is_active: true
-
+        is_active: true,
       },
 
-      order: [
-
-        ["createdAt", "DESC"]
-
-      ]
-
+      order: [["createdAt", "DESC"]],
     });
 
-
     if (!routine) {
-
       return res.json({
-
         success: true,
 
         routine: null,
 
-        message: "Nincs mentett rutin"
-
+        message: "Nincs mentett rutin",
       });
-
     }
-
 
     /* JSON mezők parse */
 
     const parsedRoutine = {
-
       ...routine.get({ plain: true }),
 
-      concerns:
-        JSON.parse(routine.concerns || "[]"),
+      concerns: JSON.parse(routine.concerns || "[]"),
 
-      goals:
-        JSON.parse(routine.goals || "[]"),
+      goals: JSON.parse(routine.goals || "[]"),
 
-      morning_routine:
-        JSON.parse(routine.morning_routine || "[]"),
+      morning_routine: JSON.parse(routine.morning_routine || "[]"),
 
-      evening_routine:
-        JSON.parse(routine.evening_routine || "[]"),
+      evening_routine: JSON.parse(routine.evening_routine || "[]"),
 
-      weekly_treatments:
-        JSON.parse(routine.weekly_treatments || "[]"),
+      weekly_treatments: JSON.parse(routine.weekly_treatments || "[]"),
 
-      product_recommendations:
-        JSON.parse(
-          routine.product_recommendations || "[]"
-        ),
+      product_recommendations: JSON.parse(
+        routine.product_recommendations || "[]",
+      ),
 
-      tips:
-        JSON.parse(routine.tips || "[]")
-
+      tips: JSON.parse(routine.tips || "[]"),
     };
-
 
     console.log("skin routine", routine.id);
 
-
     res.json({
-
       success: true,
 
-      routine: parsedRoutine
-
+      routine: parsedRoutine,
     });
-
-
   } catch (error) {
-
     console.error("skin routine error", error);
 
     res.status(500).json({
-
       success: false,
 
-      error: error.message
-
+      error: error.message,
     });
-
   }
-
 });
 
 // Rutin követés (napi checkboxok)
@@ -3242,138 +2293,89 @@ app.get("/api/skin/routine", authenticateToken, async (req, res) => {
  */
 app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
   try {
-
     const userId = req.user.userId;
 
     const {
-
       routine_id,
       date,
       morning_completed,
       evening_completed,
       morning_steps,
       evening_steps,
-      notes
-
+      notes,
     } = req.body;
 
-
     if (!routine_id || !date) {
-
       return res.status(400).json({
-
-        success:false,
-        error:"routine_id és date kötelező"
-
+        success: false,
+        error: "routine_id és date kötelező",
       });
-
     }
-
 
     /* ellenőrizzük hogy a rutin a useré */
 
     const routine = await SkinRoutine.findOne({
-
       where: {
-
         id: routine_id,
-        user_id: userId
-
-      }
-
+        user_id: userId,
+      },
     });
 
-
     if (!routine) {
-
       return res.status(404).json({
-
-        success:false,
-        error:"routine nem található ehhez a userhez"
-
+        success: false,
+        error: "routine nem található ehhez a userhez",
       });
-
     }
-
 
     /* meglévő tracking keresése */
 
     const existing = await SkinRoutineTracking.findOne({
-
       where: {
-
         routine_id,
-        date
-
-      }
-
+        date,
+      },
     });
 
-
     if (existing) {
-
       await existing.update({
-
         morning_completed,
         evening_completed,
 
-        morning_steps:
-          JSON.stringify(morning_steps || []),
+        morning_steps: JSON.stringify(morning_steps || []),
 
-        evening_steps:
-          JSON.stringify(evening_steps || []),
+        evening_steps: JSON.stringify(evening_steps || []),
 
-        notes
-
+        notes,
       });
-
-    }
-
-    else {
-
+    } else {
       await SkinRoutineTracking.create({
-
         routine_id,
         date,
 
         morning_completed,
         evening_completed,
 
-        morning_steps:
-          JSON.stringify(morning_steps || []),
+        morning_steps: JSON.stringify(morning_steps || []),
 
-        evening_steps:
-          JSON.stringify(evening_steps || []),
+        evening_steps: JSON.stringify(evening_steps || []),
 
-        notes
-
+        notes,
       });
-
     }
 
-
     res.json({
-
-      success:true,
-      message:"tracking mentve"
-
+      success: true,
+      message: "tracking mentve",
     });
-
-  }
-
-  catch (error) {
-
+  } catch (error) {
     console.error("tracking error", error);
 
     res.status(500).json({
-
-      success:false,
-      error:error.message
-
+      success: false,
+      error: error.message,
     });
-
   }
-
 });
 // Napi rutin követés lekérése
 /**
@@ -3489,108 +2491,232 @@ app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
  *         description: szerver hiba
  */
 app.get("/api/skin/tracking", authenticateToken, async (req, res) => {
-
   try {
-
     const userId = req.user.userId;
 
     const { routine_id, date } = req.query;
 
-
     if (!routine_id) {
-
       return res.status(400).json({
-
-        success:false,
-        error:"routine_id kötelező"
-
+        success: false,
+        error: "routine_id kötelező",
       });
-
     }
 
-
     const tracking = await SkinRoutineTracking.findOne({
-
       where: {
-
         routine_id,
-        ...(date && { date })
-
+        ...(date && { date }),
       },
 
       include: [
-
         {
-
           model: SkinRoutine,
 
           where: {
-
-            user_id: userId
-
+            user_id: userId,
           },
 
-          attributes: []
-
-        }
-
+          attributes: [],
+        },
       ],
 
       order: [
-
-        ["date","DESC"],
-        ["createdAt","DESC"]
-
-      ]
-
+        ["date", "DESC"],
+        ["createdAt", "DESC"],
+      ],
     });
-
 
     if (!tracking) {
-
       return res.json({
-
-        success:true,
-        tracking:null
-
+        success: true,
+        tracking: null,
       });
-
     }
 
-
     res.json({
-
-      success:true,
+      success: true,
 
       tracking: {
+        ...tracking.get({ plain: true }),
 
-        ...tracking.get({ plain:true }),
+        morning_steps: JSON.parse(tracking.morning_steps || "[]"),
 
-        morning_steps:
-          JSON.parse(tracking.morning_steps || "[]"),
-
-        evening_steps:
-          JSON.parse(tracking.evening_steps || "[]")
-
-      }
-
+        evening_steps: JSON.parse(tracking.evening_steps || "[]"),
+      },
     });
-
-  }
-
-  catch (error) {
-
+  } catch (error) {
     console.error(error);
 
     res.status(500).json({
-
-      success:false,
-      error:error.message
-
+      success: false,
+      error: error.message,
     });
+  }
+});
 
+/* ====== ADMIN API ====== */
+app.post("/api/admin/login", async (req, res) => {
+  const { username, password } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      error: "A username es password kotelezo.",
+    });
   }
 
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({
+      success: false,
+      error: "Hibas admin bejelentkezesi adatok.",
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      role: "admin",
+      username,
+    },
+    ADMIN_JWT_SECRET,
+    { expiresIn: "12h" },
+  );
+
+  res.json({
+    success: true,
+    token,
+  });
+});
+
+app.get("/api/admin/overview", authenticateAdminToken, async (req, res) => {
+  try {
+    const [
+      users_count,
+      food_entries_count,
+      workout_entries_count,
+      skin_routines_count,
+      total_food_calories,
+      total_burned_calories,
+    ] = await Promise.all([
+      User.count(),
+      FoodEntry.count(),
+      WorkoutEntry.count(),
+      SkinRoutine.count(),
+      FoodEntry.sum("calories"),
+      WorkoutEntry.sum("calories_burned"),
+    ]);
+
+    res.json({
+      success: true,
+      overview: {
+        users_count,
+        food_entries_count,
+        workout_entries_count,
+        skin_routines_count,
+        total_food_calories: Number(total_food_calories || 0),
+        total_burned_calories: Number(total_burned_calories || 0),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Szerver hiba: " + error.message,
+    });
+  }
+});
+
+app.get("/api/admin/users", authenticateAdminToken, async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit || 200), 1000);
+
+    const users = await sequelize.query(
+      `
+      SELECT
+        u.id,
+        u.username,
+        u.email,
+        u.created_at,
+        (SELECT COUNT(*) FROM food_entries fe WHERE fe.user_id = u.id) AS food_entries,
+        (SELECT COUNT(*) FROM workout_entries we WHERE we.user_id = u.id) AS workout_entries,
+        (SELECT COUNT(*) FROM skin_routines sr WHERE sr.user_id = u.id) AS skin_routines,
+        (SELECT COALESCE(SUM(fe.calories), 0) FROM food_entries fe WHERE fe.user_id = u.id) AS total_food_calories,
+        (SELECT COALESCE(SUM(we.calories_burned), 0) FROM workout_entries we WHERE we.user_id = u.id) AS total_burned_calories
+      FROM users u
+      ORDER BY u.created_at DESC
+      LIMIT :limit
+      `,
+      {
+        replacements: { limit },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    res.json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Szerver hiba: " + error.message,
+    });
+  }
+});
+
+app.delete("/api/admin/users/:id", authenticateAdminToken, async (req, res) => {
+  const userId = Number(req.params.id);
+
+  if (!Number.isFinite(userId) || userId <= 0) {
+    return res.status(400).json({
+      success: false,
+      error: "Ervenytelen user id.",
+    });
+  }
+
+  try {
+    await sequelize.transaction(async (transaction) => {
+      await sequelize.query(
+        "DELETE FROM skin_routine_tracking WHERE user_id = :userId",
+        { replacements: { userId }, transaction },
+      );
+      await SkinRoutine.destroy({ where: { user_id: userId }, transaction });
+      await sequelize.query(
+        "DELETE FROM skin_condition_log WHERE user_id = :userId",
+        {
+          replacements: { userId },
+          transaction,
+        },
+      );
+      await FoodEntry.destroy({ where: { user_id: userId }, transaction });
+      await WorkoutEntry.destroy({ where: { user_id: userId }, transaction });
+      await UserProfile.destroy({ where: { user_id: userId }, transaction });
+
+      const affectedRows = await User.destroy({
+        where: { id: userId },
+        transaction,
+      });
+      if (!affectedRows) {
+        throw new Error("USER_NOT_FOUND");
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Felhasznalo torolve.",
+    });
+  } catch (error) {
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        error: "Felhasznalo nem talalhato.",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: "Szerver hiba: " + error.message,
+    });
+  }
 });
 
 /* ====== START ====== */

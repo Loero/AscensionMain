@@ -5,3 +5,5 @@ uploads/
 # OS/Editor junk
 .DS_Store
 Thumbs.db
+
+.fake
