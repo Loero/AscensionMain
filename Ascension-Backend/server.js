@@ -3,6 +3,7 @@ import cors from "cors";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger.js";
+import { estimateWorkoutCalories } from "./utils/workoutCalories.js";
 import { v2 as cloudinary } from "cloudinary";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -120,7 +121,12 @@ const SkinRoutine = sequelize.define(
     tips: DataTypes.TEXT,
     is_active: DataTypes.BOOLEAN,
   },
-  { tableName: "skin_routines", timestamps: true },
+  {
+    tableName: "skin_routines",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+  },
 );
 
 const SkinRoutineTracking = sequelize.define(
@@ -130,6 +136,11 @@ const SkinRoutineTracking = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
 
     routine_id: {
@@ -167,6 +178,8 @@ const SkinRoutineTracking = sequelize.define(
   {
     tableName: "skin_routine_tracking",
     timestamps: true,
+    createdAt: "created_at",
+    updatedAt: false,
   },
 );
 
@@ -284,32 +297,6 @@ function roundToOne(value) {
   const num = Number(value || 0);
   if (!Number.isFinite(num)) return 0;
   return Math.round(num * 10) / 10;
-}
-
-function getWorkoutMet(workoutType) {
-  const token = String(workoutType || "").toLowerCase();
-
-  if (
-    token.includes("leg") ||
-    token.includes("also") ||
-    token.includes("lab")
-  ) {
-    return 6.8;
-  }
-
-  if (token.includes("full") || token.includes("teljes")) {
-    return 6.3;
-  }
-
-  return 6.0;
-}
-
-function estimateWorkoutCalories(workoutType, durationMinutes, bodyWeightKg) {
-  const duration = Math.min(Math.max(Number(durationMinutes || 0), 5), 180);
-  const weight = Math.min(Math.max(Number(bodyWeightKg || 70), 40), 220);
-  const met = getWorkoutMet(workoutType);
-
-  return (met * 3.5 * weight * duration) / 200;
 }
 
 /**
@@ -2011,9 +1998,9 @@ app.post("/api/skin/save-routine", authenticateToken, async (req, res) => {
       },
 
       order: [
-        ["updatedAt", "DESC"],
+        ["updated_at", "DESC"],
 
-        ["createdAt", "DESC"],
+        ["created_at", "DESC"],
       ],
     });
 
@@ -2246,7 +2233,7 @@ app.get("/api/skin/routine", authenticateToken, async (req, res) => {
         is_active: true,
       },
 
-      order: [["createdAt", "DESC"]],
+      order: [["created_at", "DESC"]],
     });
 
     if (!routine) {
@@ -2416,6 +2403,7 @@ app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
 
     const existing = await SkinRoutineTracking.findOne({
       where: {
+        user_id: userId,
         routine_id,
         date,
       },
@@ -2434,6 +2422,7 @@ app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
       });
     } else {
       await SkinRoutineTracking.create({
+        user_id: userId,
         routine_id,
         date,
 
@@ -2607,7 +2596,7 @@ app.get("/api/skin/tracking", authenticateToken, async (req, res) => {
 
       order: [
         ["date", "DESC"],
-        ["createdAt", "DESC"],
+        ["created_at", "DESC"],
       ],
     });
 
