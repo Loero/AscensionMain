@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\ascension-admin-wpf\\Ascension.Admin.Wpf.csproj": {}
+    "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\Ascension-Admin-WPF\\Ascension.Admin.Wpf.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\ascension-admin-wpf\\Ascension.Admin.Wpf.csproj": {
+    "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\Ascension-Admin-WPF\\Ascension.Admin.Wpf.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\ascension-admin-wpf\\Ascension.Admin.Wpf.csproj",
+        "projectUniqueName": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\Ascension-Admin-WPF\\Ascension.Admin.Wpf.csproj",
         "projectName": "Ascension.Admin.Wpf",
-        "projectPath": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\ascension-admin-wpf\\Ascension.Admin.Wpf.csproj",
+        "projectPath": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\Ascension-Admin-WPF\\Ascension.Admin.Wpf.csproj",
         "packagesPath": "C:\\Users\\Torda1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\ascension-admin-wpf\\obj\\",
+        "outputPath": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\Ascension-Admin-WPF\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7lDG9FYzH6xOM2+SY0FKOmaiyYGMdc+BqU6PjKHWiallDaV3k72eg2GLOZZn7Ab8Ven/OLR+j4Dm6ahr+qb6SA==",
+  "dgSpecHash": "MjMv2oNh+v0OLXSWiVReuJDQsQa3vJziH94G3n03ukcFAPR4zFpWyliqg+eFQrxQy1brt49Ph6es90EMbgzKYw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\ascension-admin-wpf\\Ascension.Admin.Wpf.csproj",
+  "projectFilePath": "C:\\Users\\Torda1\\Desktop\\vizsga_jo\\AscensionMain\\Ascension-Admin-WPF\\Ascension.Admin.Wpf.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

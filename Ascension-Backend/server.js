@@ -3,11 +3,10 @@ import cors from "cors";
 import multer from "multer";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger.js";
-import { estimateWorkoutCalories } from "./utils/workoutCalories.js";
 import { v2 as cloudinary } from "cloudinary";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Sequelize, DataTypes, Op, fn, col, QueryTypes } from "sequelize";
+import { Sequelize, DataTypes, Op, fn, col } from "sequelize";
 
 const app = express();
 app.use(
@@ -15,7 +14,10 @@ app.use(
     origin: [
       "http://localhost:5501",
       "http://localhost:5173",
+      "http://localhost:5174",
       "http://127.0.0.1:5501",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174",
       "http://localhost:5500",
       "http://127.0.0.1:5500",
     ],
@@ -37,6 +39,53 @@ try {
   console.log("✅ Sequelize kapcsolódva");
 } catch (err) {
   console.error("❌ Sequelize hiba:", err);
+}
+
+async function ensureMentalTablesSchema() {
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS mental_routines (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      primary_goal VARCHAR(30) NULL,
+      daily_time VARCHAR(10) NULL,
+      reading_habit VARCHAR(20) NULL,
+      stress_level VARCHAR(20) NULL,
+      sleep_quality VARCHAR(20) NULL,
+      tasks LONGTEXT NULL,
+      is_active TINYINT(1) DEFAULT 1,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      KEY idx_user_active (user_id, is_active),
+      CONSTRAINT mental_routines_ibfk_1 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS mental_routine_tracking (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      routine_id INT NOT NULL,
+      date DATE NOT NULL,
+      completed_task_ids LONGTEXT NULL,
+      completed_count INT DEFAULT 0,
+      required_count INT DEFAULT 0,
+      percent INT DEFAULT 0,
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY unique_user_mental_routine_date (user_id, routine_id, date),
+      KEY idx_user_date (user_id, date),
+      KEY routine_id (routine_id),
+      CONSTRAINT mental_routine_tracking_ibfk_1 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT mental_routine_tracking_ibfk_2 FOREIGN KEY (routine_id) REFERENCES mental_routines(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+}
+
+try {
+  await ensureMentalTablesSchema();
+  console.log("✅ Mental táblák ellenőrizve");
+} catch (err) {
+  console.error("❌ Mental tábla inicializálási hiba:", err);
 }
 
 const User = sequelize.define(
@@ -107,6 +156,23 @@ const WorkoutEntry = sequelize.define(
   },
 );
 
+const AlcoholEntry = sequelize.define(
+  "AlcoholEntry",
+  {
+    drink_type: DataTypes.STRING,
+    amount_ml: DataTypes.FLOAT,
+    alcohol_percentage: DataTypes.FLOAT,
+    calories: DataTypes.FLOAT,
+    date: DataTypes.DATEONLY,
+  },
+  {
+    tableName: "alcohol_entries",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: false,
+  },
+);
+
 const SkinRoutine = sequelize.define(
   "SkinRoutine",
   {
@@ -138,12 +204,12 @@ const SkinRoutineTracking = sequelize.define(
       autoIncrement: true,
     },
 
-    user_id: {
+    routine_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
 
-    routine_id: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -183,12 +249,84 @@ const SkinRoutineTracking = sequelize.define(
   },
 );
 
+const MentalRoutine = sequelize.define(
+  "MentalRoutine",
+  {
+    primary_goal: DataTypes.STRING,
+    daily_time: DataTypes.STRING,
+    reading_habit: DataTypes.STRING,
+    stress_level: DataTypes.STRING,
+    sleep_quality: DataTypes.STRING,
+    tasks: DataTypes.TEXT,
+    is_active: DataTypes.BOOLEAN,
+  },
+  {
+    tableName: "mental_routines",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+  },
+);
+
+const MentalRoutineTracking = sequelize.define(
+  "MentalRoutineTracking",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    routine_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    date: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    completed_task_ids: {
+      type: DataTypes.TEXT,
+    },
+    completed_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    required_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    percent: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    notes: {
+      type: DataTypes.TEXT,
+    },
+  },
+  {
+    tableName: "mental_routine_tracking",
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: false,
+  },
+);
+
 User.hasOne(UserProfile, { foreignKey: "user_id" });
 User.hasMany(FoodEntry, { foreignKey: "user_id" });
 User.hasMany(WorkoutEntry, { foreignKey: "user_id" });
+User.hasMany(AlcoholEntry, { foreignKey: "user_id" });
 User.hasMany(SkinRoutine, { foreignKey: "user_id" });
+User.hasMany(MentalRoutine, { foreignKey: "user_id" });
 
 SkinRoutine.hasMany(SkinRoutineTracking, {
+  foreignKey: "routine_id",
+});
+
+MentalRoutine.hasMany(MentalRoutineTracking, {
   foreignKey: "routine_id",
 });
 
@@ -196,10 +334,11 @@ SkinRoutineTracking.belongsTo(SkinRoutine, {
   foreignKey: "routine_id",
 });
 
+MentalRoutineTracking.belongsTo(MentalRoutine, {
+  foreignKey: "routine_id",
+});
+
 const JWT_SECRET = "ascension_secret_2026";
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || `${JWT_SECRET}_admin`;
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
 /* ====== AUTH MIDDLEWARE ====== */
 function authenticateToken(req, res, next) {
@@ -234,31 +373,6 @@ function authenticateToken(req, res, next) {
   });
 }
 
-function authenticateAdminToken(req, res, next) {
-  const authHeader =
-    req.headers["authorization"] || req.headers["Authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: "Hianyzo admin token.",
-    });
-  }
-
-  jwt.verify(token, ADMIN_JWT_SECRET, (err, decoded) => {
-    if (err || decoded?.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        error: "Ervenytelen admin token.",
-      });
-    }
-
-    req.admin = decoded;
-    next();
-  });
-}
-
 /* ====== CLOUDINARY ====== */
 cloudinary.config({
   cloud_name: "dpgrckgpd",
@@ -270,34 +384,168 @@ cloudinary.config({
 const FDC_API_KEY =
   process.env.FDC_API_KEY || "dVZB801iAYTee9gse3M24mw2rYVtxkjpd2kW3jT3";
 
-/* ====== SEGÉD ====== */
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function parseFoodNutrients(foodNutrients = []) {
+  const toNum = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
 
-function getNutrientValueByIds(food, nutrientIds) {
-  const nutrients = Array.isArray(food?.foodNutrients)
-    ? food.foodNutrients
-    : [];
+  const getValue = (predicate) => {
+    const match = foodNutrients.find(predicate);
+    return match?.value ?? 0;
+  };
 
-  for (const id of nutrientIds) {
-    const match = nutrients.find((nutrient) => {
-      const nutrientId = Number(nutrient?.nutrientId ?? nutrient?.nutrient?.id);
-      return nutrientId === Number(id);
-    });
+  const energyKcal = toNum(
+    getValue(
+      (n) =>
+        n.nutrientId === 1008 ||
+        n.nutrientNumber === "1008" ||
+        (n.nutrientName === "Energy" && n.unitName === "KCAL"),
+    ),
+  );
 
-    if (match) {
-      const value = Number(match.value ?? match.amount ?? 0);
-      if (Number.isFinite(value)) return value;
-    }
+  const proteinG = toNum(
+    getValue(
+      (n) =>
+        n.nutrientId === 1003 ||
+        n.nutrientNumber === "1003" ||
+        n.nutrientName === "Protein",
+    ),
+  );
+
+  const carbG = toNum(
+    getValue(
+      (n) =>
+        n.nutrientId === 1005 ||
+        n.nutrientNumber === "1005" ||
+        n.nutrientName === "Carbohydrate, by difference",
+    ),
+  );
+
+  const fatG = toNum(
+    getValue(
+      (n) =>
+        n.nutrientId === 1004 ||
+        n.nutrientNumber === "1004" ||
+        n.nutrientName === "Total lipid (fat)",
+    ),
+  );
+
+  return {
+    energyKcal,
+    proteinG,
+    carbG,
+    fatG,
+  };
+}
+
+async function searchUsdaFoods(query) {
+  const fdcUrl = new URL("https://api.nal.usda.gov/fdc/v1/foods/search");
+  fdcUrl.searchParams.set("api_key", FDC_API_KEY);
+  fdcUrl.searchParams.set("query", query);
+  fdcUrl.searchParams.set("pageSize", "12");
+
+  const response = await fetch(fdcUrl);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message || "USDA API hiba");
   }
 
-  return 0;
+  return Array.isArray(data?.foods)
+    ? data.foods.map((food) => ({
+        fdcId: String(food.fdcId || `${food.description || "food"}`),
+        description: food.description || "Ismeretlen étel",
+        dataType: food.dataType || "USDA",
+        brandOwner: food.brandOwner || "",
+        nutrients: parseFoodNutrients(food.foodNutrients),
+      }))
+    : [];
 }
 
-function roundToOne(value) {
-  const num = Number(value || 0);
-  if (!Number.isFinite(num)) return 0;
-  return Math.round(num * 10) / 10;
+async function searchOpenFoodFactsFoods(query) {
+  const offUrl = new URL("https://world.openfoodfacts.org/cgi/search.pl");
+  offUrl.searchParams.set("search_terms", query);
+  offUrl.searchParams.set("search_simple", "1");
+  offUrl.searchParams.set("action", "process");
+  offUrl.searchParams.set("json", "1");
+  offUrl.searchParams.set("page_size", "12");
+
+  const response = await fetch(offUrl);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error("OpenFoodFacts API hiba");
+  }
+
+  const products = Array.isArray(data?.products) ? data.products : [];
+
+  return products
+    .map((product) => {
+      const nutriments = product?.nutriments || {};
+      const energyKcal = Number(
+        nutriments["energy-kcal_100g"] ??
+          nutriments["energy-kcal"] ??
+          nutriments["energy_100g"] ??
+          0,
+      );
+      const proteinG = Number(nutriments.proteins_100g ?? 0);
+      const carbG = Number(nutriments.carbohydrates_100g ?? 0);
+      const fatG = Number(nutriments.fat_100g ?? 0);
+
+      return {
+        fdcId: String(
+          product.code || product.id || product._id || Math.random(),
+        ),
+        description:
+          product.product_name ||
+          product.generic_name ||
+          product.brands ||
+          "Ismeretlen étel",
+        dataType: "OpenFoodFacts",
+        brandOwner: product.brands || "",
+        nutrients: {
+          energyKcal: Number.isFinite(energyKcal) ? energyKcal : 0,
+          proteinG: Number.isFinite(proteinG) ? proteinG : 0,
+          carbG: Number.isFinite(carbG) ? carbG : 0,
+          fatG: Number.isFinite(fatG) ? fatG : 0,
+        },
+      };
+    })
+    .filter((item) => item.description && item.description.trim().length > 0);
 }
+
+app.get("/nutrition/search", async (req, res) => {
+  try {
+    const query = String(req.query.query || "").trim();
+
+    if (!query) {
+      return res.json({ success: true, items: [] });
+    }
+
+    let items = [];
+    let source = "USDA";
+
+    try {
+      items = await searchUsdaFoods(query);
+    } catch (usdaError) {
+      console.warn("nutrition search USDA fallback", usdaError.message);
+      items = await searchOpenFoodFactsFoods(query);
+      source = "OpenFoodFacts";
+    }
+
+    return res.json({ success: true, items, source });
+  } catch (error) {
+    console.error("nutrition search error", error);
+    return res.status(500).json({
+      success: false,
+      error: "Nem sikerült lekérni a tápanyag adatokat.",
+    });
+  }
+});
+
+/* ====== SEGÉD ====== */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * @swagger
@@ -918,65 +1166,539 @@ app.delete("/api/profile/details", authenticateToken, async (req, res) => {
     });
   }
 });
-/* ====== FOOD TRACKING ENDPOINTS ====== */
+/* ====== ALCOHOL TRACKING ENDPOINTS ====== */
 
-// USDA FoodData Central keresés az étel-autocomplete mezőhöz
-app.get("/nutrition/search", async (req, res) => {
+// Alkohol bejegyzés hozzáadása
+
+/**
+ * @swagger
+ * /api/alcohol/add:
+ *   post:
+ *     summary: Alkohol bejegyzés hozzáadása
+ *     description: Új alkohol fogyasztás rögzítése mennyiséggel és kalóriával
+ *     tags:
+ *       - Alcohol
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     requestBody:
+ *       required: true
+ *
+ *       content:
+ *         application/json:
+ *
+ *           schema:
+ *             type: object
+ *
+ *             required:
+ *               - drinkType
+ *               - amountMl
+ *               - alcoholPercentage
+ *               - calories
+ *               - date
+ *
+ *             properties:
+ *
+ *               drinkType:
+ *                 type: string
+ *                 example: beer
+ *
+ *               amountMl:
+ *                 type: number
+ *                 example: 500
+ *
+ *               alcoholPercentage:
+ *                 type: number
+ *                 example: 5
+ *
+ *               calories:
+ *                 type: number
+ *                 example: 210
+ *
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 example: 2026-03-29
+ *
+ *     responses:
+ *
+ *       200:
+ *         description: sikeres mentés
+ *
+ *         content:
+ *           application/json:
+ *
+ *             schema:
+ *               type: object
+ *
+ *               properties:
+ *
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 message:
+ *                   type: string
+ *                   example: Alkohol mentve
+ *
+ *                 entryId:
+ *                   type: integer
+ *                   example: 7
+ *
+ *       400:
+ *         description: hiányzó mező
+ *
+ *       401:
+ *         description: nincs token
+ *
+ *       500:
+ *         description: szerver hiba
+ */
+app.post("/api/alcohol/add", authenticateToken, async (req, res) => {
   try {
-    const query = String(req.query?.query || "").trim();
+    const userId = req.user.userId;
 
-    if (query.length < 2) {
-      return res.json({
-        success: true,
-        items: [],
+    const { drinkType, amountMl, alcoholPercentage, calories, date } = req.body;
+
+    /* validáció */
+
+    if (
+      !drinkType ||
+      !amountMl ||
+      alcoholPercentage === undefined ||
+      !calories ||
+      !date
+    ) {
+      return res.status(400).json({
+        success: false,
+
+        error: "Minden mező kötelező",
       });
     }
 
-    const params = new URLSearchParams({
-      api_key: FDC_API_KEY,
-      query,
-      pageSize: "10",
-      dataType: "Foundation,SR Legacy,Branded,Survey (FNDDS)",
+    /* ORM insert */
+
+    const entry = await AlcoholEntry.create({
+      user_id: userId,
+
+      drink_type: drinkType,
+
+      amount_ml: amountMl,
+
+      alcohol_percentage: alcoholPercentage,
+
+      calories: calories,
+
+      date: date,
     });
 
-    const response = await fetch(
-      `https://api.nal.usda.gov/fdc/v1/foods/search?${params.toString()}`,
-    );
-
-    if (!response.ok) {
-      throw new Error(`USDA API hiba: ${response.status}`);
-    }
-
-    const payload = await response.json();
-    const foods = Array.isArray(payload?.foods) ? payload.foods : [];
-
-    const items = foods
-      .map((food) => ({
-        fdcId: food.fdcId,
-        description: String(food.description || "").trim(),
-        brandOwner: food.brandOwner || "",
-        dataType: food.dataType || "Unknown",
-        nutrients: {
-          energyKcal: roundToOne(getNutrientValueByIds(food, [1008])),
-          proteinG: roundToOne(getNutrientValueByIds(food, [1003])),
-          carbG: roundToOne(getNutrientValueByIds(food, [1005])),
-        },
-      }))
-      .filter((food) => food.description.length > 0);
+    console.log("alcohol mentve", entry.id);
 
     res.json({
       success: true,
-      items,
+
+      message: "Alkohol mentve",
+
+      entryId: entry.id,
     });
   } catch (error) {
-    console.error("nutrition search error", error);
-    res.status(502).json({
+    console.error("alcohol create error", error);
+
+    res.status(500).json({
       success: false,
-      error: "Nem sikerült étel találatokat lekérni.",
-      items: [],
+
+      error: error.message,
     });
   }
 });
+
+// Alkohol bejegyzések lekérése (adott dátum vagy időszak)
+/**
+ * @swagger
+ * /api/alcohol/entries:
+ *   get:
+ *     summary: Alkohol bejegyzések lekérése
+ *     description: A felhasználó alkohol fogyasztási naplója, opcionális dátum szűréssel
+ *     tags:
+ *       - Alcohol
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     parameters:
+ *
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Egy adott nap bejegyzései
+ *         example: 2026-03-29
+ *
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Időintervallum kezdete
+ *         example: 2026-03-01
+ *
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Időintervallum vége
+ *         example: 2026-03-31
+ *
+ *     responses:
+ *
+ *       200:
+ *         description: Lista sikeresen lekérve
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *
+ *               properties:
+ *
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 entries:
+ *                   type: array
+ *
+ *                   items:
+ *                     type: object
+ *
+ *                     properties:
+ *
+ *                       id:
+ *                         type: integer
+ *                         example: 5
+ *
+ *                       user_id:
+ *                         type: integer
+ *                         example: 1
+ *
+ *                       drink_type:
+ *                         type: string
+ *                         example: beer
+ *
+ *                       amount_ml:
+ *                         type: number
+ *                         example: 500
+ *
+ *                       alcohol_percentage:
+ *                         type: number
+ *                         example: 5
+ *
+ *                       calories:
+ *                         type: number
+ *                         example: 210
+ *
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         example: 2026-03-29
+ *
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *
+ *       401:
+ *         description: nincs token
+ *
+ *       500:
+ *         description: szerver hiba
+ */
+
+app.get("/api/alcohol/entries", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const { date, startDate, endDate } = req.query;
+
+    /* WHERE feltétel építése */
+
+    const whereClause = {
+      user_id: userId,
+    };
+
+    if (date) {
+      whereClause.date = date;
+    } else if (startDate && endDate) {
+      whereClause.date = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    /* ORM SELECT */
+
+    const entries = await AlcoholEntry.findAll({
+      where: whereClause,
+
+      order: [
+        ["date", "DESC"],
+
+        ["created_at", "DESC"],
+      ],
+    });
+
+    res.json({
+      success: true,
+
+      entries,
+    });
+  } catch (error) {
+    console.error("alcohol list error", error);
+
+    res.status(500).json({
+      success: false,
+
+      error: error.message,
+    });
+  }
+});
+// Alkohol bejegyzés törlése
+/**
+ * @swagger
+ * /api/alcohol/{id}:
+ *   delete:
+ *     summary: Alkohol bejegyzés törlése
+ *     description: A felhasználó saját alkohol bejegyzésének törlése ID alapján
+ *     tags:
+ *       - Alcohol
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     parameters:
+ *
+ *       - in: path
+ *         name: id
+ *         required: true
+ *
+ *         schema:
+ *           type: integer
+ *
+ *         description: törlendő alkohol bejegyzés ID
+ *
+ *         example: 8
+ *
+ *     responses:
+ *
+ *       200:
+ *         description: sikeres törlés
+ *
+ *         content:
+ *           application/json:
+ *
+ *             schema:
+ *               type: object
+ *
+ *               properties:
+ *
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 message:
+ *                   type: string
+ *                   example: Bejegyzés törölve
+ *
+ *       404:
+ *         description: nincs ilyen rekord vagy nem a felhasználóé
+ *
+ *       401:
+ *         description: nincs token
+ *
+ *       500:
+ *         description: szerver hiba
+ */
+app.delete("/api/alcohol/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const entryId = req.params.id;
+
+    /* törlés csak saját rekordra */
+
+    const deletedCount = await AlcoholEntry.destroy({
+      where: {
+        id: entryId,
+
+        user_id: userId,
+      },
+    });
+
+    /* ha nem létezett vagy nem a user-é */
+
+    if (deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+
+        error: "Bejegyzés nem található",
+      });
+    }
+
+    console.log("alcohol törölve", entryId);
+
+    res.json({
+      success: true,
+
+      message: "Bejegyzés törölve",
+    });
+  } catch (error) {
+    console.error("alcohol delete error", error);
+
+    res.status(500).json({
+      success: false,
+
+      error: error.message,
+    });
+  }
+});
+// Alkohol statisztikák (összes kalória, ml stb. adott időszakra)
+/**
+ * @swagger
+ * /api/alcohol/stats:
+ *   get:
+ *     summary: Alkohol statisztikák lekérése
+ *     description: Alkohol fogyasztás összesített statisztikái opcionális dátum szűréssel
+ *     tags:
+ *       - Alcohol
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     parameters:
+ *
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: statisztika kezdő dátuma
+ *         example: 2026-03-01
+ *
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: statisztika záró dátuma
+ *         example: 2026-03-31
+ *
+ *     responses:
+ *
+ *       200:
+ *         description: statisztika sikeresen lekérve
+ *
+ *         content:
+ *           application/json:
+ *
+ *             schema:
+ *               type: object
+ *
+ *               properties:
+ *
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 stats:
+ *                   type: object
+ *
+ *                   properties:
+ *
+ *                     totalEntries:
+ *                       type: integer
+ *                       example: 12
+ *
+ *                     totalMl:
+ *                       type: number
+ *                       example: 3500
+ *
+ *                     totalCalories:
+ *                       type: number
+ *                       example: 1850
+ *
+ *                     avgAlcoholPercentage:
+ *                       type: number
+ *                       example: 6.25
+ *
+ *       401:
+ *         description: nincs token
+ *
+ *       500:
+ *         description: szerver hiba
+ */
+app.get("/api/alcohol/stats", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const { startDate, endDate } = req.query;
+
+    /* WHERE feltétel */
+
+    const whereClause = {
+      user_id: userId,
+    };
+
+    if (startDate && endDate) {
+      whereClause.date = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    /* ORM aggregáció */
+
+    const stats = await AlcoholEntry.findOne({
+      attributes: [
+        [fn("COUNT", col("id")), "total_entries"],
+
+        [fn("SUM", col("amount_ml")), "total_ml"],
+
+        [fn("SUM", col("calories")), "total_calories"],
+
+        [fn("AVG", col("alcohol_percentage")), "avg_alcohol_percentage"],
+      ],
+
+      where: whereClause,
+
+      raw: true,
+    });
+
+    res.json({
+      success: true,
+
+      stats: {
+        totalEntries: stats.total_entries || 0,
+
+        totalMl: stats.total_ml || 0,
+
+        totalCalories: stats.total_calories || 0,
+
+        avgAlcoholPercentage: stats.avg_alcohol_percentage
+          ? Number(stats.avg_alcohol_percentage).toFixed(2)
+          : 0,
+      },
+    });
+  } catch (error) {
+    console.error("alcohol stats error", error);
+
+    res.status(500).json({
+      success: false,
+
+      error: error.message,
+    });
+  }
+});
+
+/* ====== FOOD TRACKING ENDPOINTS ====== */
 
 // Étel bejegyzés hozzáadása
 
@@ -1201,53 +1923,19 @@ app.post("/api/workout", authenticateToken, async (req, res) => {
 
     /* validáció */
 
-    if (!workoutType || !exerciseName || !durationMinutes || !date) {
+    if (
+      !workoutType ||
+      !exerciseName ||
+      !durationMinutes ||
+      !caloriesBurned ||
+      !date
+    ) {
       return res.status(400).json({
         success: false,
 
         error: "Hiányzó kötelező mező",
       });
     }
-
-    const durationMinutesNum = Number(durationMinutes);
-    if (
-      !Number.isFinite(durationMinutesNum) ||
-      durationMinutesNum <= 0 ||
-      durationMinutesNum > 300
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: "Ervénytelen edzésidő.",
-      });
-    }
-
-    const profile = await UserProfile.findOne({
-      where: { user_id: userId },
-      attributes: ["weight_kg"],
-    });
-
-    const weightForCalc = Number(profile?.weight_kg || weightKg || 70);
-    const estimatedCalories = estimateWorkoutCalories(
-      workoutType,
-      durationMinutesNum,
-      weightForCalc,
-    );
-
-    let caloriesBurnedNum = Number(caloriesBurned);
-    if (!Number.isFinite(caloriesBurnedNum) || caloriesBurnedNum <= 0) {
-      caloriesBurnedNum = estimatedCalories;
-    }
-
-    const minReasonableCalories = durationMinutesNum * 2;
-    const maxReasonableCalories = durationMinutesNum * 18;
-    if (
-      caloriesBurnedNum < minReasonableCalories ||
-      caloriesBurnedNum > maxReasonableCalories
-    ) {
-      caloriesBurnedNum = estimatedCalories;
-    }
-
-    const safeCaloriesBurned = Math.round(caloriesBurnedNum * 10) / 10;
 
     /* ORM insert */
 
@@ -1258,9 +1946,9 @@ app.post("/api/workout", authenticateToken, async (req, res) => {
 
       exercise_name: exerciseName,
 
-      duration_minutes: Math.round(durationMinutesNum),
+      duration_minutes: durationMinutes,
 
-      calories_burned: safeCaloriesBurned,
+      calories_burned: caloriesBurned,
 
       sets: sets || null,
 
@@ -2403,7 +3091,6 @@ app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
 
     const existing = await SkinRoutineTracking.findOne({
       where: {
-        user_id: userId,
         routine_id,
         date,
       },
@@ -2425,14 +3112,10 @@ app.post("/api/skin/tracking", authenticateToken, async (req, res) => {
         user_id: userId,
         routine_id,
         date,
-
         morning_completed,
         evening_completed,
-
         morning_steps: JSON.stringify(morning_steps || []),
-
         evening_steps: JSON.stringify(evening_steps || []),
-
         notes,
       });
     }
@@ -2628,166 +3311,759 @@ app.get("/api/skin/tracking", authenticateToken, async (req, res) => {
   }
 });
 
-/* ====== ADMIN API ====== */
-app.post("/api/admin/login", async (req, res) => {
-  const { username, password } = req.body || {};
+/* ====== MENTAL ROUTINE ENDPOINTS ====== */
 
-  if (!username || !password) {
-    return res.status(400).json({
-      success: false,
-      error: "A username es password kotelezo.",
-    });
-  }
-
-  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({
-      success: false,
-      error: "Hibas admin bejelentkezesi adatok.",
-    });
-  }
-
-  const token = jwt.sign(
-    {
-      role: "admin",
-      username,
-    },
-    ADMIN_JWT_SECRET,
-    { expiresIn: "12h" },
-  );
-
-  res.json({
-    success: true,
-    token,
-  });
-});
-
-app.get("/api/admin/overview", authenticateAdminToken, async (req, res) => {
+/**
+ * @swagger
+ * /api/mental/save-routine:
+ *   post:
+ *     summary: Mentális rutin mentése
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [answers, routineTasks]
+ *             properties:
+ *               answers:
+ *                 type: object
+ *               routineTasks:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *     responses:
+ *       200:
+ *         description: Mentális rutin mentve
+ *       400:
+ *         description: Hibás kérés
+ *       401:
+ *         description: Nincs token
+ *       500:
+ *         description: Szerver hiba
+ */
+app.post("/api/mental/save-routine", authenticateToken, async (req, res) => {
   try {
-    const [
-      users_count,
-      food_entries_count,
-      workout_entries_count,
-      skin_routines_count,
-      total_food_calories,
-      total_burned_calories,
-    ] = await Promise.all([
-      User.count(),
-      FoodEntry.count(),
-      WorkoutEntry.count(),
-      SkinRoutine.count(),
-      FoodEntry.sum("calories"),
-      WorkoutEntry.sum("calories_burned"),
-    ]);
+    const userId = req.user.userId;
+    const { answers, routineTasks } = req.body;
 
-    res.json({
-      success: true,
-      overview: {
-        users_count,
-        food_entries_count,
-        workout_entries_count,
-        skin_routines_count,
-        total_food_calories: Number(total_food_calories || 0),
-        total_burned_calories: Number(total_burned_calories || 0),
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: "Szerver hiba: " + error.message,
-    });
-  }
-});
+    const getNextRoutineId = async () => {
+      const maxId = await MentalRoutine.max("id");
+      const normalized = Number.isFinite(Number(maxId)) ? Number(maxId) : 0;
+      return normalized + 1;
+    };
 
-app.get("/api/admin/users", authenticateAdminToken, async (req, res) => {
-  try {
-    const limit = Math.min(Number(req.query.limit || 200), 1000);
-
-    const users = await sequelize.query(
-      `
-      SELECT
-        u.id,
-        u.username,
-        u.email,
-        u.created_at,
-        (SELECT COUNT(*) FROM food_entries fe WHERE fe.user_id = u.id) AS food_entries,
-        (SELECT COUNT(*) FROM workout_entries we WHERE we.user_id = u.id) AS workout_entries,
-        (SELECT COUNT(*) FROM skin_routines sr WHERE sr.user_id = u.id) AS skin_routines,
-        (SELECT COALESCE(SUM(fe.calories), 0) FROM food_entries fe WHERE fe.user_id = u.id) AS total_food_calories,
-        (SELECT COALESCE(SUM(we.calories_burned), 0) FROM workout_entries we WHERE we.user_id = u.id) AS total_burned_calories
-      FROM users u
-      ORDER BY u.created_at DESC
-      LIMIT :limit
-      `,
-      {
-        replacements: { limit },
-        type: QueryTypes.SELECT,
-      },
-    );
-
-    res.json({
-      success: true,
-      users,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: "Szerver hiba: " + error.message,
-    });
-  }
-});
-
-app.delete("/api/admin/users/:id", authenticateAdminToken, async (req, res) => {
-  const userId = Number(req.params.id);
-
-  if (!Number.isFinite(userId) || userId <= 0) {
-    return res.status(400).json({
-      success: false,
-      error: "Ervenytelen user id.",
-    });
-  }
-
-  try {
-    await sequelize.transaction(async (transaction) => {
-      await sequelize.query(
-        "DELETE FROM skin_routine_tracking WHERE user_id = :userId",
-        { replacements: { userId }, transaction },
-      );
-      await SkinRoutine.destroy({ where: { user_id: userId }, transaction });
-      await sequelize.query(
-        "DELETE FROM skin_condition_log WHERE user_id = :userId",
-        {
-          replacements: { userId },
-          transaction,
-        },
-      );
-      await FoodEntry.destroy({ where: { user_id: userId }, transaction });
-      await WorkoutEntry.destroy({ where: { user_id: userId }, transaction });
-      await UserProfile.destroy({ where: { user_id: userId }, transaction });
-
-      const affectedRows = await User.destroy({
-        where: { id: userId },
-        transaction,
-      });
-      if (!affectedRows) {
-        throw new Error("USER_NOT_FOUND");
-      }
-    });
-
-    res.json({
-      success: true,
-      message: "Felhasznalo torolve.",
-    });
-  } catch (error) {
-    if (error.message === "USER_NOT_FOUND") {
-      return res.status(404).json({
+    const tasks = Array.isArray(routineTasks) ? routineTasks : [];
+    if (!tasks.length) {
+      return res.status(400).json({
         success: false,
-        error: "Felhasznalo nem talalhato.",
+        error: "A routineTasks tömb kötelező.",
       });
     }
 
-    res.status(500).json({
+    const payload = {
+      primary_goal: answers?.primaryGoal || null,
+      daily_time: answers?.dailyTime || null,
+      reading_habit: answers?.readingHabit || null,
+      stress_level: answers?.stressLevel || null,
+      sleep_quality: answers?.sleepQuality || null,
+      tasks: JSON.stringify(tasks),
+      is_active: true,
+    };
+
+    const normalizeJsonArray = (value) => {
+      try {
+        return JSON.stringify(JSON.parse(value || "[]"));
+      } catch {
+        return JSON.stringify([]);
+      }
+    };
+
+    const existing = await MentalRoutine.findOne({
+      where: {
+        user_id: userId,
+        is_active: true,
+      },
+      order: [
+        ["updated_at", "DESC"],
+        ["created_at", "DESC"],
+      ],
+    });
+
+    if (existing) {
+      const hasNoChanges =
+        String(existing.primary_goal || "") ===
+          String(payload.primary_goal || "") &&
+        String(existing.daily_time || "") ===
+          String(payload.daily_time || "") &&
+        String(existing.reading_habit || "") ===
+          String(payload.reading_habit || "") &&
+        String(existing.stress_level || "") ===
+          String(payload.stress_level || "") &&
+        String(existing.sleep_quality || "") ===
+          String(payload.sleep_quality || "") &&
+        normalizeJsonArray(existing.tasks) === payload.tasks;
+
+      if (hasNoChanges) {
+        let safeRoutineId = Number(existing.id) || 0;
+        if (safeRoutineId <= 0) {
+          safeRoutineId = await getNextRoutineId();
+          await existing.update({ id: safeRoutineId });
+        }
+
+        return res.json({
+          success: true,
+          unchanged: true,
+          routine_id: safeRoutineId,
+        });
+      }
+
+      await existing.update(payload);
+
+      let safeRoutineId = Number(existing.id) || 0;
+      if (safeRoutineId <= 0) {
+        safeRoutineId = await getNextRoutineId();
+        await existing.update({ id: safeRoutineId });
+      }
+
+      await MentalRoutine.update(
+        { is_active: false },
+        {
+          where: {
+            user_id: userId,
+            id: { [Op.ne]: existing.id },
+          },
+        },
+      );
+
+      return res.json({
+        success: true,
+        updated: true,
+        routine_id: safeRoutineId,
+      });
+    }
+
+    const nextRoutineId = await getNextRoutineId();
+    const created = await MentalRoutine.create({
+      id: nextRoutineId,
+      user_id: userId,
+      ...payload,
+    });
+
+    return res.json({
+      success: true,
+      inserted: true,
+      routine_id: Number(created.id) || nextRoutineId,
+    });
+  } catch (error) {
+    console.error("mental routine save error", error);
+    return res.status(500).json({
       success: false,
-      error: "Szerver hiba: " + error.message,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/routine:
+ *   get:
+ *     summary: Mentális rutin lekérése
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Aktív mentális rutin (vagy null)
+ *       401:
+ *         description: Nincs token
+ *       500:
+ *         description: Szerver hiba
+ */
+app.get("/api/mental/routine", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const routine = await MentalRoutine.findOne({
+      where: {
+        user_id: userId,
+        is_active: true,
+      },
+      order: [["created_at", "DESC"]],
+    });
+
+    if (!routine) {
+      return res.json({
+        success: true,
+        routine: null,
+        message: "Nincs mentett mentális rutin",
+      });
+    }
+
+    const parsedRoutine = {
+      ...routine.get({ plain: true }),
+      tasks: JSON.parse(routine.tasks || "[]"),
+      answers: {
+        primaryGoal: routine.primary_goal,
+        dailyTime: routine.daily_time,
+        readingHabit: routine.reading_habit,
+        stressLevel: routine.stress_level,
+        sleepQuality: routine.sleep_quality,
+      },
+    };
+
+    return res.json({
+      success: true,
+      routine: parsedRoutine,
+    });
+  } catch (error) {
+    console.error("mental routine get error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/routines:
+ *   get:
+ *     summary: Mentális rutinok listázása
+ *     description: A felhasználó mentális rutinjainak listája (újabb elöl)
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Mentális rutinok listája
+ *       401:
+ *         description: Nincs token
+ *       500:
+ *         description: Szerver hiba
+ */
+app.get("/api/mental/routines", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const routines = await MentalRoutine.findAll({
+      where: {
+        user_id: userId,
+      },
+      order: [
+        ["is_active", "DESC"],
+        ["updated_at", "DESC"],
+        ["created_at", "DESC"],
+      ],
+      limit: 50,
+    });
+
+    const parsed = routines.map((routine) => ({
+      ...routine.get({ plain: true }),
+      tasks: JSON.parse(routine.tasks || "[]"),
+      answers: {
+        primaryGoal: routine.primary_goal,
+        dailyTime: routine.daily_time,
+        readingHabit: routine.reading_habit,
+        stressLevel: routine.stress_level,
+        sleepQuality: routine.sleep_quality,
+      },
+    }));
+
+    return res.json({
+      success: true,
+      count: parsed.length,
+      routines: parsed,
+    });
+  } catch (error) {
+    console.error("mental routines list error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/routine/{id}:
+ *   delete:
+ *     summary: Mentális rutin deaktiválása
+ *     description: Egy userhez tartozó mentális rutin inaktiválása
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Mentális rutin deaktiválva
+ *       400:
+ *         description: Hibás azonosító
+ *       401:
+ *         description: Nincs token
+ *       404:
+ *         description: Nincs ilyen rutin
+ *       500:
+ *         description: Szerver hiba
+ */
+app.delete("/api/mental/routine/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const routineId = Number(req.params.id || 0);
+
+    if (!routineId) {
+      return res.status(400).json({
+        success: false,
+        error: "Érvénytelen routine id",
+      });
+    }
+
+    const routine = await MentalRoutine.findOne({
+      where: {
+        id: routineId,
+        user_id: userId,
+      },
+    });
+
+    if (!routine) {
+      return res.status(404).json({
+        success: false,
+        error: "Mentális rutin nem található",
+      });
+    }
+
+    await routine.update({ is_active: false });
+
+    const latestOther = await MentalRoutine.findOne({
+      where: {
+        user_id: userId,
+        id: { [Op.ne]: routineId },
+      },
+      order: [
+        ["updated_at", "DESC"],
+        ["created_at", "DESC"],
+      ],
+    });
+
+    if (latestOther) {
+      await latestOther.update({ is_active: true });
+    }
+
+    return res.json({
+      success: true,
+      message: "Mentális rutin deaktiválva",
+    });
+  } catch (error) {
+    console.error("mental routine delete error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/tracking:
+ *   post:
+ *     summary: Napi mentális teljesítés mentése
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [routine_id, date]
+ *             properties:
+ *               routine_id:
+ *                 type: integer
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               completed_task_ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               completed_count:
+ *                 type: integer
+ *               required_count:
+ *                 type: integer
+ *               percent:
+ *                 type: integer
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Mentális tracking mentve
+ *       400:
+ *         description: Hibás kérés
+ *       401:
+ *         description: Nincs token
+ *       404:
+ *         description: Nincs ilyen routine
+ *       500:
+ *         description: Szerver hiba
+ */
+app.post("/api/mental/tracking", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const {
+      routine_id,
+      date,
+      completed_task_ids,
+      completed_count,
+      required_count,
+      percent,
+      notes,
+    } = req.body;
+
+    if (!routine_id || !date) {
+      return res.status(400).json({
+        success: false,
+        error: "routine_id és date kötelező",
+      });
+    }
+
+    const routine = await MentalRoutine.findOne({
+      where: {
+        id: routine_id,
+        user_id: userId,
+      },
+    });
+
+    if (!routine) {
+      return res.status(404).json({
+        success: false,
+        error: "Mental routine nem található ehhez a userhez",
+      });
+    }
+
+    const existing = await MentalRoutineTracking.findOne({
+      where: {
+        routine_id,
+        date,
+      },
+    });
+
+    const payload = {
+      completed_task_ids: JSON.stringify(
+        Array.isArray(completed_task_ids) ? completed_task_ids : [],
+      ),
+      completed_count: Number(completed_count || 0),
+      required_count: Number(required_count || 0),
+      percent: Number(percent || 0),
+      notes: notes || null,
+    };
+
+    if (existing) {
+      await existing.update(payload);
+    } else {
+      await MentalRoutineTracking.create({
+        user_id: userId,
+        routine_id,
+        date,
+        ...payload,
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Mental tracking mentve",
+    });
+  } catch (error) {
+    console.error("mental tracking save error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/tracking:
+ *   get:
+ *     summary: Napi mentális teljesítés lekérése
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: routine_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: date
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Mentális tracking adat (vagy null)
+ *       400:
+ *         description: routine_id hiányzik
+ *       401:
+ *         description: Nincs token
+ *       500:
+ *         description: Szerver hiba
+ */
+app.get("/api/mental/tracking", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { routine_id, date } = req.query;
+
+    if (!routine_id) {
+      return res.status(400).json({
+        success: false,
+        error: "routine_id kötelező",
+      });
+    }
+
+    const tracking = await MentalRoutineTracking.findOne({
+      where: {
+        routine_id,
+        ...(date && { date }),
+      },
+      include: [
+        {
+          model: MentalRoutine,
+          where: {
+            user_id: userId,
+          },
+          attributes: [],
+        },
+      ],
+      order: [
+        ["date", "DESC"],
+        ["created_at", "DESC"],
+      ],
+    });
+
+    if (!tracking) {
+      return res.json({
+        success: true,
+        tracking: null,
+      });
+    }
+
+    return res.json({
+      success: true,
+      tracking: {
+        ...tracking.get({ plain: true }),
+        completed_task_ids: JSON.parse(tracking.completed_task_ids || "[]"),
+      },
+    });
+  } catch (error) {
+    console.error("mental tracking get error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/tracking/history:
+ *   get:
+ *     summary: Mentális tracking history
+ *     description: Mentális napi teljesítések listája (szűrhető időintervallummal)
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: routine_id
+ *         required: false
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: start_date
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: end_date
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Tracking history lista
+ *       401:
+ *         description: Nincs token
+ *       500:
+ *         description: Szerver hiba
+ */
+app.get("/api/mental/tracking/history", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { routine_id, start_date, end_date, limit } = req.query;
+
+    const parsedLimit = Math.min(100, Math.max(1, Number(limit || 30)));
+
+    const whereTracking = {
+      ...(routine_id && { routine_id: Number(routine_id) }),
+      ...(start_date || end_date
+        ? {
+            date: {
+              ...(start_date && { [Op.gte]: start_date }),
+              ...(end_date && { [Op.lte]: end_date }),
+            },
+          }
+        : {}),
+    };
+
+    const items = await MentalRoutineTracking.findAll({
+      where: whereTracking,
+      include: [
+        {
+          model: MentalRoutine,
+          where: {
+            user_id: userId,
+          },
+          attributes: ["id", "is_active", "primary_goal", "daily_time"],
+        },
+      ],
+      order: [
+        ["date", "DESC"],
+        ["created_at", "DESC"],
+      ],
+      limit: parsedLimit,
+    });
+
+    return res.json({
+      success: true,
+      count: items.length,
+      items: items.map((item) => ({
+        ...item.get({ plain: true }),
+        completed_task_ids: JSON.parse(item.completed_task_ids || "[]"),
+      })),
+    });
+  } catch (error) {
+    console.error("mental tracking history error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/mental/stats:
+ *   get:
+ *     summary: Mentális statisztika lekérése
+ *     description: Aktív rutin + mai százalék + utóbbi napok összesítése
+ *     tags: [Mental]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Mentál statisztika
+ *       401:
+ *         description: Nincs token
+ *       500:
+ *         description: Szerver hiba
+ */
+app.get("/api/mental/stats", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const today = new Date().toISOString().split("T")[0];
+
+    const activeRoutine = await MentalRoutine.findOne({
+      where: {
+        user_id: userId,
+        is_active: true,
+      },
+      order: [
+        ["updated_at", "DESC"],
+        ["created_at", "DESC"],
+      ],
+    });
+
+    if (!activeRoutine) {
+      return res.json({
+        success: true,
+        stats: {
+          hasRoutine: false,
+          todayPercent: 0,
+          weeklyAveragePercent: 0,
+          completedDaysLast7: 0,
+        },
+      });
+    }
+
+    const todayTracking = await MentalRoutineTracking.findOne({
+      where: {
+        routine_id: activeRoutine.id,
+        date: today,
+      },
+      order: [["created_at", "DESC"]],
+    });
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+
+    const recent = await MentalRoutineTracking.findAll({
+      where: {
+        routine_id: activeRoutine.id,
+        date: {
+          [Op.gte]: sevenDaysAgoStr,
+          [Op.lte]: today,
+        },
+      },
+      order: [["date", "DESC"]],
+      limit: 7,
+    });
+
+    const weeklyAveragePercent = recent.length
+      ? Math.round(
+          recent.reduce((sum, item) => sum + Number(item.percent || 0), 0) /
+            recent.length,
+        )
+      : 0;
+
+    const completedDaysLast7 = recent.filter(
+      (item) => Number(item.percent || 0) >= 100,
+    ).length;
+
+    return res.json({
+      success: true,
+      stats: {
+        hasRoutine: true,
+        routine_id: activeRoutine.id,
+        todayPercent: Number(todayTracking?.percent || 0),
+        weeklyAveragePercent,
+        completedDaysLast7,
+      },
+    });
+  } catch (error) {
+    console.error("mental stats error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
     });
   }
 });

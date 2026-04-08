@@ -8,12 +8,25 @@ import {
   getRequiredWorkoutSetsTodayFromPlan,
   getTodayStr,
 } from "../utils/workoutProgress";
+import { useAlert } from "../components/AlertContext";
+
+const DAILY_QUEST_REWARD_PREFIX = "ascension_daily_quest_rewarded_v1";
+const DAILY_QUEST_MESSAGES = [
+  "Csak így tovább! A következetesség a legerősebb szupererőd.",
+  "Szép munka! Ma is bizonyítottad, hogy képes vagy végigcsinálni.",
+  "Brutál teljesítmény! Tartsd ezt a tempót holnap is.",
+  "Fegyelem szintlépés! Ne állj meg, építsd tovább a szériát.",
+];
 
 export default function Dashboard() {
   const WORKOUT_API_URL = "http://localhost:3000/api/workout";
   const SKIN_ROUTINE_API_URL = "http://localhost:3000/api/skin/routine";
   const SKIN_TRACKING_API_URL = "http://localhost:3000/api/skin/tracking";
+  const MENTAL_ROUTINE_API_URL = "http://localhost:3000/api/mental/routine";
+  const MENTAL_TRACKING_API_URL = "http://localhost:3000/api/mental/tracking";
+
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState(() => {
@@ -33,28 +46,28 @@ export default function Dashboard() {
 
   const [skinStats, setSkinStats] = useState({
     hasRoutine: false,
-    requiredSkinSteps: 0,
-    completedSkinSteps: 0,
-    skinIntensity: 0,
+    completedSteps: 0,
+    requiredSteps: 0,
+    progress: 0,
   });
 
-  const stripSkinStepLabel = (value) =>
-    String(value || "")
-      .replace(/[^a-zA-Z0-9\s.,:()\-+/%áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+  const [mentalStats, setMentalStats] = useState({
+    hasRoutine: false,
+    completedTasks: 0,
+    requiredTasks: 0,
+    progress: 0,
+  });
 
-  const getRequiredSkinStepsFromRoutine = (routine) => {
-    const pickTopThree = (list) =>
-      (Array.isArray(list) ? list : [])
-        .map((step) => stripSkinStepLabel(step))
-        .filter(Boolean)
-        .slice(0, 3);
+  const getSkinRequiredStepsCount = (routine) => {
+    const morningCount = Array.isArray(routine?.morning_routine)
+      ? routine.morning_routine.slice(0, 3).filter(Boolean).length
+      : 0;
 
-    return [
-      ...pickTopThree(routine?.morning_routine),
-      ...pickTopThree(routine?.evening_routine),
-    ];
+    const eveningCount = Array.isArray(routine?.evening_routine)
+      ? routine.evening_routine.slice(0, 3).filter(Boolean).length
+      : 0;
+
+    return morningCount + eveningCount;
   };
 
   useEffect(() => {
@@ -87,6 +100,110 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    const loadDashboardMentalStats = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setMentalStats({
+          hasRoutine: false,
+          completedTasks: 0,
+          requiredTasks: 0,
+          progress: 0,
+        });
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      try {
+        const today = getTodayStr();
+
+        const routineResponse = await fetch(MENTAL_ROUTINE_API_URL, {
+          method: "GET",
+          headers,
+        });
+        const routineData = await routineResponse.json();
+
+        if (!routineData.success || !routineData.routine) {
+          setMentalStats({
+            hasRoutine: false,
+            completedTasks: 0,
+            requiredTasks: 0,
+            progress: 0,
+          });
+          return;
+        }
+
+        const routine = routineData.routine;
+        const tasks = Array.isArray(routine.tasks) ? routine.tasks : [];
+        const requiredTasks = tasks.length;
+
+        if (routine.id == null) {
+          setMentalStats({
+            hasRoutine: true,
+            completedTasks: 0,
+            requiredTasks,
+            progress: 0,
+          });
+          return;
+        }
+
+        const trackingResponse = await fetch(
+          `${MENTAL_TRACKING_API_URL}?routine_id=${encodeURIComponent(
+            routine.id,
+          )}&date=${encodeURIComponent(today)}`,
+          {
+            method: "GET",
+            headers,
+          },
+        );
+        const trackingData = await trackingResponse.json();
+
+        const doneIds =
+          trackingData.success && trackingData.tracking
+            ? Array.isArray(trackingData.tracking.completed_task_ids)
+              ? trackingData.tracking.completed_task_ids
+              : []
+            : [];
+
+        const completedTasks = tasks.filter((task) =>
+          doneIds.includes(task.id),
+        ).length;
+        const progress =
+          requiredTasks > 0
+            ? Math.min(100, Math.round((completedTasks / requiredTasks) * 100))
+            : 0;
+
+        setMentalStats({
+          hasRoutine: true,
+          completedTasks,
+          requiredTasks,
+          progress,
+        });
+      } catch {
+        setMentalStats({
+          hasRoutine: false,
+          completedTasks: 0,
+          requiredTasks: 0,
+          progress: 0,
+        });
+      }
+    };
+
+    loadDashboardMentalStats();
+
+    window.addEventListener("focus", loadDashboardMentalStats);
+    window.addEventListener("storage", loadDashboardMentalStats);
+
+    return () => {
+      window.removeEventListener("focus", loadDashboardMentalStats);
+      window.removeEventListener("storage", loadDashboardMentalStats);
+    };
+  }, []);
+
+  useEffect(() => {
     const loadDashboardWorkoutStats = async () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -94,12 +211,6 @@ export default function Dashboard() {
           dailyWorkoutSets: 0,
           requiredWorkoutSetsToday: 0,
           workoutIntensity: 0,
-        });
-        setSkinStats({
-          hasRoutine: false,
-          requiredSkinSteps: 0,
-          completedSkinSteps: 0,
-          skinIntensity: 0,
         });
         return;
       }
@@ -163,14 +274,26 @@ export default function Dashboard() {
       }
     };
 
+    loadDashboardWorkoutStats();
+
+    window.addEventListener("focus", loadDashboardWorkoutStats);
+    window.addEventListener("storage", loadDashboardWorkoutStats);
+
+    return () => {
+      window.removeEventListener("focus", loadDashboardWorkoutStats);
+      window.removeEventListener("storage", loadDashboardWorkoutStats);
+    };
+  }, []);
+
+  useEffect(() => {
     const loadDashboardSkinStats = async () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
         setSkinStats({
           hasRoutine: false,
-          requiredSkinSteps: 0,
-          completedSkinSteps: 0,
-          skinIntensity: 0,
+          completedSteps: 0,
+          requiredSteps: 0,
+          progress: 0,
         });
         return;
       }
@@ -182,97 +305,88 @@ export default function Dashboard() {
 
       try {
         const today = getTodayStr();
-        const routineRes = await fetch(SKIN_ROUTINE_API_URL, {
+
+        const routineResponse = await fetch(SKIN_ROUTINE_API_URL, {
           method: "GET",
           headers,
         });
-        const routineData = await routineRes.json();
+        const routineData = await routineResponse.json();
 
         if (!routineData.success || !routineData.routine) {
           setSkinStats({
             hasRoutine: false,
-            requiredSkinSteps: 0,
-            completedSkinSteps: 0,
-            skinIntensity: 0,
+            completedSteps: 0,
+            requiredSteps: 0,
+            progress: 0,
           });
           return;
         }
 
         const routine = routineData.routine;
-        const requiredSteps = getRequiredSkinStepsFromRoutine(routine);
-        const requiredCount = requiredSteps.length;
+        const requiredSteps = getSkinRequiredStepsCount(routine);
 
-        let completedCount = 0;
-
-        try {
-          const trackingRes = await fetch(
-            `${SKIN_TRACKING_API_URL}?routine_id=${encodeURIComponent(
-              routine.id,
-            )}&date=${encodeURIComponent(today)}`,
-            {
-              method: "GET",
-              headers,
-            },
-          );
-          const trackingData = await trackingRes.json();
-
-          if (trackingData.success && trackingData.tracking) {
-            const done = [
-              ...(Array.isArray(trackingData.tracking.morning_steps)
-                ? trackingData.tracking.morning_steps
-                : []),
-              ...(Array.isArray(trackingData.tracking.evening_steps)
-                ? trackingData.tracking.evening_steps
-                : []),
-            ].map(stripSkinStepLabel);
-
-            completedCount = requiredSteps.filter((step) =>
-              done.includes(step),
-            ).length;
-          }
-        } catch {
-          completedCount = 0;
+        if (!routine.id) {
+          setSkinStats({
+            hasRoutine: true,
+            completedSteps: 0,
+            requiredSteps,
+            progress: 0,
+          });
+          return;
         }
 
-        completedCount = Math.min(requiredCount, Math.max(0, completedCount));
+        const trackingResponse = await fetch(
+          `${SKIN_TRACKING_API_URL}?routine_id=${encodeURIComponent(
+            routine.id,
+          )}&date=${encodeURIComponent(today)}`,
+          {
+            method: "GET",
+            headers,
+          },
+        );
+        const trackingData = await trackingResponse.json();
+
+        const completedSteps =
+          trackingData.success && trackingData.tracking
+            ? [
+                ...(Array.isArray(trackingData.tracking.morning_steps)
+                  ? trackingData.tracking.morning_steps
+                  : []),
+                ...(Array.isArray(trackingData.tracking.evening_steps)
+                  ? trackingData.tracking.evening_steps
+                  : []),
+              ].length
+            : 0;
+
+        const progress =
+          requiredSteps > 0
+            ? Math.min(100, Math.round((completedSteps / requiredSteps) * 100))
+            : 0;
 
         setSkinStats({
           hasRoutine: true,
-          requiredSkinSteps: requiredCount,
-          completedSkinSteps: completedCount,
-          skinIntensity:
-            requiredCount > 0
-              ? Math.min(
-                  100,
-                  Math.round((completedCount / requiredCount) * 100),
-                )
-              : 0,
+          completedSteps,
+          requiredSteps,
+          progress,
         });
       } catch {
         setSkinStats({
           hasRoutine: false,
-          requiredSkinSteps: 0,
-          completedSkinSteps: 0,
-          skinIntensity: 0,
+          completedSteps: 0,
+          requiredSteps: 0,
+          progress: 0,
         });
       }
     };
 
-    const loadDashboardStats = async () => {
-      await Promise.all([
-        loadDashboardWorkoutStats(),
-        loadDashboardSkinStats(),
-      ]);
-    };
+    loadDashboardSkinStats();
 
-    loadDashboardStats();
-
-    window.addEventListener("focus", loadDashboardStats);
-    window.addEventListener("storage", loadDashboardStats);
+    window.addEventListener("focus", loadDashboardSkinStats);
+    window.addEventListener("storage", loadDashboardSkinStats);
 
     return () => {
-      window.removeEventListener("focus", loadDashboardStats);
-      window.removeEventListener("storage", loadDashboardStats);
+      window.removeEventListener("focus", loadDashboardSkinStats);
+      window.removeEventListener("storage", loadDashboardSkinStats);
     };
   }, []);
 
@@ -281,6 +395,10 @@ export default function Dashboard() {
     pslGrowth: 0,
     dailyCompletion: 0,
   });
+
+  useEffect(() => {
+    document.title = "Ascension - Dashboard";
+  }, []);
 
   const dashboardData = useMemo(() => {
     const today = new Date();
@@ -296,8 +414,6 @@ export default function Dashboard() {
 
     const workoutProgress = workoutStats.workoutIntensity;
     const workoutDone = workoutStats.dailyWorkoutSets > 0;
-    const arcProgress = skinStats.skinIntensity;
-    const arcDone = arcProgress >= 100;
 
     const tasks = [
       {
@@ -314,36 +430,64 @@ export default function Dashboard() {
         id: "arc",
         title: "Arcápolás",
         description: skinStats.hasRoutine
-          ? `Mai haladás: ${skinStats.completedSkinSteps}/${skinStats.requiredSkinSteps} lépés`
+          ? `Mai haladás: ${skinStats.completedSteps}/${skinStats.requiredSteps} lépés`
           : "Rutin nincs beállítva. Készítsd el a személyre szabott arcápolási rutinodat.",
         buttonText: skinStats.hasRoutine
-          ? "Arc Követés Megnyitása"
+          ? "Rutin Megnyitása"
           : "Rutin Készítése",
-        progress: arcProgress,
+        progress: skinStats.progress,
         route: "/arc",
       },
       {
         id: "mental",
         title: "Mentális",
-        description:
-          "Nincs mentális gyakorlat. Válassz egy meditációt vagy relaxációs technikát.",
-        buttonText: "Gyakorlat Választása",
-        progress: 0,
+        description: mentalStats.hasRoutine
+          ? `Mai haladás: ${mentalStats.completedTasks}/${mentalStats.requiredTasks} feladat`
+          : "Rutin nincs beállítva. Készítsd el a napi mentális rutinodat.",
+        buttonText: mentalStats.hasRoutine
+          ? "Mentál Megnyitása"
+          : "Rutin Készítése",
+        progress: mentalStats.progress,
         route: "/mental",
       },
     ];
 
     const completedTasks = tasks.filter((task) => task.progress >= 100).length;
     const dailyPercent = Math.round((completedTasks / tasks.length) * 100);
+    const isQuestCompleted = completedTasks === tasks.length;
 
     return {
       daysInSystem,
-      pslGrowth: workoutProgress >= 100 ? 1 : 0,
+      pslGrowth: isQuestCompleted ? 1 : 0,
       dailyCompletion: dailyPercent,
       completedTasks,
+      isQuestCompleted,
       tasks,
     };
-  }, [user, workoutStats, skinStats]);
+  }, [user, workoutStats, skinStats, mentalStats]);
+
+  useEffect(() => {
+    if (!dashboardData.isQuestCompleted) return;
+
+    const userId = Number(user?.id || 0);
+    if (!userId) return;
+
+    const rewardKey = `${DAILY_QUEST_REWARD_PREFIX}_${userId}_${getTodayStr()}`;
+    if (localStorage.getItem(rewardKey) === "1") return;
+
+    localStorage.setItem(rewardKey, "1");
+
+    const randomMsg =
+      DAILY_QUEST_MESSAGES[
+        Math.floor(Math.random() * DAILY_QUEST_MESSAGES.length)
+      ];
+
+    (async () => {
+      await showAlert(
+        `✅ Sikeresen teljesítetted a mai questet!\n\n🔥 ${randomMsg}`,
+      );
+    })();
+  }, [dashboardData.isQuestCompleted, user?.id, showAlert]);
 
   useEffect(() => {
     const target = {

@@ -105,6 +105,45 @@ CREATE TABLE `skin_routine_tracking` (
 -- --------------------------------------------------------
 
 --
+-- Tábla szerkezet ehhez a táblához `mental_routines`
+--
+
+CREATE TABLE `mental_routines` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `primary_goal` varchar(30) DEFAULT NULL,
+  `daily_time` varchar(10) DEFAULT NULL,
+  `reading_habit` varchar(20) DEFAULT NULL,
+  `stress_level` varchar(20) DEFAULT NULL,
+  `sleep_quality` varchar(20) DEFAULT NULL,
+  `tasks` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tasks`)),
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `mental_routine_tracking`
+--
+
+CREATE TABLE `mental_routine_tracking` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `routine_id` int(11) NOT NULL,
+  `date` date NOT NULL,
+  `completed_task_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`completed_task_ids`)),
+  `completed_count` int(11) DEFAULT 0,
+  `required_count` int(11) DEFAULT 0,
+  `percent` int(11) DEFAULT 0,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Tábla szerkezet ehhez a táblához `users`
 --
 
@@ -192,6 +231,22 @@ ALTER TABLE `skin_routine_tracking`
   ADD KEY `idx_user_date` (`user_id`,`date`);
 
 --
+-- A tábla indexei `mental_routines`
+--
+ALTER TABLE `mental_routines`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_active` (`user_id`,`is_active`);
+
+--
+-- A tábla indexei `mental_routine_tracking`
+--
+ALTER TABLE `mental_routine_tracking`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_mental_routine_date` (`user_id`,`routine_id`,`date`),
+  ADD KEY `routine_id` (`routine_id`),
+  ADD KEY `idx_user_date` (`user_id`,`date`);
+
+--
 -- A tábla indexei `users`
 --
 ALTER TABLE `users`
@@ -242,6 +297,18 @@ ALTER TABLE `skin_routine_tracking`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT a táblához `mental_routines`
+--
+ALTER TABLE `mental_routines`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `mental_routine_tracking`
+--
+ALTER TABLE `mental_routine_tracking`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
@@ -287,6 +354,19 @@ ALTER TABLE `skin_routines`
 ALTER TABLE `skin_routine_tracking`
   ADD CONSTRAINT `skin_routine_tracking_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `skin_routine_tracking_ibfk_2` FOREIGN KEY (`routine_id`) REFERENCES `skin_routines` (`id`) ON DELETE CASCADE;
+
+--
+-- Megkötések a táblához `mental_routines`
+--
+ALTER TABLE `mental_routines`
+  ADD CONSTRAINT `mental_routines_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Megkötések a táblához `mental_routine_tracking`
+--
+ALTER TABLE `mental_routine_tracking`
+  ADD CONSTRAINT `mental_routine_tracking_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `mental_routine_tracking_ibfk_2` FOREIGN KEY (`routine_id`) REFERENCES `mental_routines` (`id`) ON DELETE CASCADE;
 
 --
 -- Megkötések a táblához `user_profile`

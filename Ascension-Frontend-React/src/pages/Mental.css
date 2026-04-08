@@ -1,0 +1,404 @@
+:root {
+  --graphite: #1f2022;
+  --charcoal: #2b2b2b;
+  --dark: #0b0b0b;
+  --text: #f5f5f5;
+  --muted: #bdbdbd;
+  --glow: rgba(211, 47, 47, 0.25);
+  --accent: #d32f2f;
+}
+
+.mental-page {
+  min-height: 100vh;
+  background: #000;
+  color: var(--text);
+}
+
+.mental-content {
+  min-height: 100vh;
+  padding: 110px 20px 40px;
+}
+
+.mental-hero {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mental-title {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  margin-bottom: 28px;
+  color: var(--text);
+  text-shadow: 0 0 20px rgba(211, 47, 47, 0.25);
+  font-family: "Cinzel", "Copperplate Gothic", "Copperplate", serif;
+  letter-spacing: 0.08em;
+}
+
+.mental-lead {
+  font-size: 1.2rem;
+  line-height: 1.9;
+  color: var(--muted);
+  margin-bottom: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.motivation-section {
+  margin: 24px auto 40px;
+  max-width: 800px;
+  padding: 40px 30px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(211, 47, 47, 0.1);
+  position: relative;
+}
+
+.motivation-section h3 {
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  text-align: center;
+  color: var(--accent);
+  font-family: "Cinzel", "Copperplate Gothic", "Copperplate", sans-serif;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgba(211, 47, 47, 0.3);
+}
+
+.motivation-quote {
+  position: relative;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 60px 20px 20px;
+}
+
+.quote-text {
+  font-size: 1.3rem;
+  line-height: 1.8;
+  color: var(--text);
+  text-align: center;
+  font-style: italic;
+  font-family: "Cinzel", "Copperplate Gothic", "Copperplate", sans-serif;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.quote-text.is-visible {
+  animation: fadeInQuote 0.6s ease forwards;
+}
+
+@keyframes fadeInQuote {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.btn-refresh-quote {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(211, 47, 47, 0.15);
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d32f2f;
+}
+
+.btn-refresh-quote:hover {
+  background: rgba(211, 47, 47, 0.25);
+  border-color: rgba(211, 47, 47, 0.5);
+  transform: translateY(-50%) rotate(180deg);
+  box-shadow: 0 0 20px rgba(211, 47, 47, 0.4);
+}
+
+.btn-refresh-quote:active {
+  transform: translateY(-50%) rotate(180deg) scale(0.95);
+}
+
+.mental-routine-section {
+  margin: 14px auto 26px;
+  max-width: 800px;
+  padding: 28px 24px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(211, 47, 47, 0.1);
+}
+
+.mental-routine-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.mental-routine-head h3 {
+  font-size: 1.4rem;
+  color: var(--accent);
+  margin: 0;
+  font-family: "Cinzel", "Copperplate Gothic", "Copperplate", sans-serif;
+}
+
+.btn-mental-reset {
+  background: rgba(211, 47, 47, 0.15);
+  color: #ffd7d7;
+  border: 1px solid rgba(211, 47, 47, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-mental-reset:hover {
+  background: rgba(211, 47, 47, 0.22);
+}
+
+.mental-quiz-card,
+.mental-tracker-card {
+  background: rgba(30, 30, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.mental-quiz-progress,
+.mental-tracker-summary {
+  color: var(--muted);
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
+.mental-progress-track {
+  width: 100%;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.mental-progress-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #d32f2f, #ff6b6b);
+}
+
+.mental-quiz-card h4 {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  color: #fff;
+}
+
+.mental-options-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.mental-option-btn {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  background: rgba(211, 47, 47, 0.1);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mental-option-btn:hover {
+  background: rgba(211, 47, 47, 0.22);
+  border-color: rgba(211, 47, 47, 0.45);
+}
+
+.mental-task-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mental-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mental-task-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #d32f2f;
+}
+
+.mental-task-row.done {
+  border-color: rgba(46, 204, 113, 0.45);
+  background: rgba(46, 204, 113, 0.12);
+}
+
+.mental-task-row.done span {
+  text-decoration: line-through;
+  color: #ccefd7;
+}
+
+.mental-empty {
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+.mental-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-mental-save {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+  box-shadow: 0 6px 16px rgba(211, 47, 47, 0.3);
+}
+
+.btn-mental-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(211, 47, 47, 0.4);
+}
+
+.btn-mental-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.back-to-home {
+  margin: 50px auto 30px;
+  text-align: center;
+  padding: 20px;
+}
+
+.btn-back-home {
+  display: inline-block;
+  padding: 14px 30px;
+  background: linear-gradient(
+    135deg,
+    rgba(211, 47, 47, 0.2) 0%,
+    rgba(211, 47, 47, 0.1) 100%
+  );
+  border: 2px solid rgba(211, 47, 47, 0.3);
+  border-radius: 10px;
+  color: #d32f2f;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-family: "Cinzel", "Copperplate Gothic", "Copperplate", sans-serif;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(211, 47, 47, 0.1);
+}
+
+.btn-back-home:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(211, 47, 47, 0.3) 0%,
+    rgba(211, 47, 47, 0.2) 100%
+  );
+  border-color: rgba(211, 47, 47, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(211, 47, 47, 0.3);
+  color: #fff;
+}
+
+.btn-back-home:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(211, 47, 47, 0.2);
+}
+
+@media (max-width: 768px) {
+  .mental-content {
+    padding: 90px 16px 30px;
+  }
+
+  .mental-title {
+    font-size: 2rem;
+  }
+
+  .mental-lead {
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+
+  .motivation-section {
+    padding: 30px 20px;
+    margin: 18px 0 30px;
+  }
+
+  .mental-routine-section {
+    padding: 20px 16px;
+    margin: 10px 0 20px;
+  }
+
+  .mental-routine-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mental-actions {
+    justify-content: stretch;
+  }
+
+  .btn-mental-save {
+    width: 100%;
+  }
+
+  .motivation-section h3 {
+    font-size: 1.4rem;
+  }
+
+  .motivation-quote {
+    padding: 15px 50px 15px 15px;
+    min-height: 100px;
+  }
+
+  .quote-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  .btn-refresh-quote {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    right: 15px;
+  }
+
+  .btn-back-home {
+    font-size: 1rem;
+    padding: 12px 24px;
+  }
+}

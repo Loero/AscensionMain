@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import ProfileModal from "../components/ProfileModal"
 import "./Arc.css"
+import { useAlert } from "../components/AlertContext"
 
 const SKIN_ROUTINE_API_URL = "http://localhost:3000/api/skin/routine"
 const SKIN_SAVE_ROUTINE_API_URL = "http://localhost:3000/api/skin/save-routine"
@@ -320,6 +321,7 @@ function calculateTrackerMetrics(requiredSteps, completedStepIds) {
 
 export default function Arc() {
   const navigate = useNavigate()
+  const { showAlert } = useAlert()
 
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [user, setUser] = useState(() => {
@@ -364,6 +366,10 @@ export default function Arc() {
   const currentQuestionData = QUESTIONS[currentQuestion]
 
   useEffect(() => {
+    document.title = "Ascension - Arc"
+  }, [])
+
+  useEffect(() => {
     const syncAuth = () => {
       try {
         const token = localStorage.getItem("authToken")
@@ -399,7 +405,7 @@ export default function Arc() {
     if (localAnswers) {
       try {
         setAnswers(JSON.parse(localAnswers))
-      } catch {}
+      } catch { }
     }
   }, [])
 
@@ -446,7 +452,7 @@ export default function Arc() {
             const localRoutine = normalizeRoutineData(JSON.parse(localRoutineRaw))
             setRoutine(localRoutine)
           }
-        } catch {}
+        } catch { }
       } finally {
         setLoadingRoutine(false)
       }
@@ -495,7 +501,7 @@ export default function Arc() {
               .filter((step) => completedLabels.includes(step.label))
               .map((step) => step.id)
           }
-        } catch {}
+        } catch { }
       }
 
       setCompletedStepIds(nextCompleted)
@@ -538,9 +544,9 @@ export default function Arc() {
     return Boolean(value)
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isQuestionAnswered()) {
-      alert("Válassz legalább egy opciót a továbblépéshez.")
+      await showAlert("Válassz legalább egy opciót a továbblépéshez.")
       return
     }
     setCurrentQuestion((prev) => Math.min(prev + 1, QUESTIONS.length - 1))
@@ -550,9 +556,9 @@ export default function Arc() {
     setCurrentQuestion((prev) => Math.max(prev - 1, 0))
   }
 
-  const handleGenerateRoutine = () => {
+  const handleGenerateRoutine = async () => {
     if (!isQuestionAnswered()) {
-      alert("Válassz legalább egy opciót a rutin generálásához.")
+      await showAlert("Válassz legalább egy opciót a rutin generálásához.")
       return
     }
 
@@ -573,12 +579,12 @@ export default function Arc() {
 
   const handleSaveRoutine = async () => {
     if (!authHeaders) {
-      alert("A rutin mentéséhez be kell jelentkezned!")
+      await showAlert("A rutin mentéséhez be kell jelentkezned!")
       return
     }
 
     if (!routine) {
-      alert("Előbb generálj rutint.")
+      await showAlert("Előbb generálj rutint.")
       return
     }
 
@@ -596,7 +602,7 @@ export default function Arc() {
       const data = await response.json()
 
       if (!data.success) {
-        alert(`Hiba a mentés során: ${data.error || "ismeretlen hiba"}`)
+        await showAlert(`Hiba a mentés során: ${data.error || "ismeretlen hiba"}`)
         return
       }
 
@@ -606,14 +612,14 @@ export default function Arc() {
       localStorage.setItem(CURRENT_ROUTINE_ID_KEY, String(data.routine_id))
 
       if (data.unchanged) {
-        alert("Nincs változás a rutinban.")
+        await showAlert("Nincs változás a rutinban.")
       } else if (data.updated) {
-        alert(`Rutin frissítve! ID: ${data.routine_id}`)
+        await showAlert(`Rutin frissítve! ID: ${data.routine_id}`)
       } else {
-        alert(`Rutin sikeresen elmentve! ID: ${data.routine_id}`)
+        await showAlert(`Rutin sikeresen elmentve! ID: ${data.routine_id}`)
       }
     } catch (error) {
-      alert(`Hiba a mentés során: ${error.message}`)
+      await showAlert(`Hiba a mentés során: ${error.message}`)
     } finally {
       setSavingRoutine(false)
     }
@@ -637,12 +643,12 @@ export default function Arc() {
 
   const handleSaveTracking = async () => {
     if (!routine?.id) {
-      alert("Nincs menthető napi arc követés. Előbb legyen elmentett rutinod.")
+      await showAlert("Nincs menthető napi arc követés. Előbb legyen elmentett rutinod.")
       return
     }
 
     if (!authHeaders) {
-      alert("A napi követés mentéséhez be kell jelentkezned.")
+      await showAlert("A napi követés mentéséhez be kell jelentkezned.")
       return
     }
 
@@ -670,16 +676,16 @@ export default function Arc() {
 
       const data = await response.json()
       if (!data.success) {
-        alert(data.error || "Nem sikerült menteni a napi követést.")
+        await showAlert(data.error || "Nem sikerült menteni a napi követést.")
         return
       }
 
-      alert(
+      await showAlert(
         `Napi arc követés mentve! ${metrics.completedCount}/${metrics.requiredCount} lépés (${metrics.percent}%).`
       )
       window.dispatchEvent(new Event("focus"))
     } catch (error) {
-      alert(`Hiba a mentés során: ${error.message}`)
+      await showAlert(`Hiba a mentés során: ${error.message}`)
     } finally {
       setSavingTracking(false)
     }
@@ -698,7 +704,7 @@ export default function Arc() {
       <Navbar onOpenProfile={() => setIsProfileOpen(true)} user={user} />
 
       <main className="arc-content">
-        <h1 className="arc-title">Az Ascension Arc Program</h1>
+        <h1 className="arc-title">Az Ascension arc program</h1>
 
         <div className="arc-intro">
           <section className="arc-hero">
@@ -728,7 +734,7 @@ export default function Arc() {
                 <span className="arc-feature-dot"></span>
                 <span className="arc-feature-step">01</span>
               </div>
-              <h3>Bőrtípus Elemzés</h3>
+              <h3>Bőrtípus elemzés</h3>
               <p>10 pontos kérdőívvel pontos képet kapsz a kiindulási állapotról.</p>
             </article>
 
@@ -737,7 +743,7 @@ export default function Arc() {
                 <span className="arc-feature-dot"></span>
                 <span className="arc-feature-step">02</span>
               </div>
-              <h3>Személyre Szabás</h3>
+              <h3>Személyre szabás</h3>
               <p>A rutinod a bőrtípusodhoz és céljaidhoz lesz optimalizálva.</p>
             </article>
 
@@ -746,14 +752,14 @@ export default function Arc() {
                 <span className="arc-feature-dot"></span>
                 <span className="arc-feature-step">03</span>
               </div>
-              <h3>Fejlődés Követés</h3>
+              <h3>Fejlődés követés</h3>
               <p>Következetes rendszerrel látod, mi működik és mi nem.</p>
             </article>
           </section>
         </div>
 
         <section className="core-section" id="daily-skin-section">
-          <h3>Napi Arc Követés</h3>
+          <h3>Napi arc követés</h3>
 
           <div className="quiz-container">
             {!routine ? (
@@ -835,7 +841,7 @@ export default function Arc() {
         </section>
 
         <section className="core-section" id="skin-analysis-section">
-          <h3>Bőrtípus Elemzés</h3>
+          <h3>Bőrtípus elemzés</h3>
 
           {loadingRoutine ? (
             <div className="quiz-container">
@@ -863,7 +869,7 @@ export default function Arc() {
                     {currentQuestionData.options.map((option) => {
                       const checked = currentQuestionData.multiple
                         ? Array.isArray(answers[currentQuestionData.id]) &&
-                          answers[currentQuestionData.id].includes(option.value)
+                        answers[currentQuestionData.id].includes(option.value)
                         : answers[currentQuestionData.id] === option.value
 
                       return (
@@ -905,7 +911,7 @@ export default function Arc() {
                     type="button"
                     onClick={handleGenerateRoutine}
                   >
-                    Rutin Generálása
+                    Rutin generálása
                   </button>
                 )}
               </div>
@@ -913,7 +919,7 @@ export default function Arc() {
           ) : (
             <div className="routine-result">
               <div className="routine-header">
-                <h3>Személyre Szabott Arcápolási Rutin</h3>
+                <h3>Személyre szabott arcápolási rutin</h3>
                 <p>
                   Bőrtípusod: <strong>{getSkinTypeLabel(routine.skin_type)}</strong>
                 </p>

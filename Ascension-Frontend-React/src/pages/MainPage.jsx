@@ -1,231 +1,277 @@
-import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import NavbarMain from "../components/NavbarMain"
-import AuthModal from "../components/AuthModal"
-import ProfileModal from "../components/ProfileModal"
-import "./MainPage.css"
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import NavbarMain from "../components/NavbarMain";
+import AuthModal from "../components/AuthModal";
+import ProfileModal from "../components/ProfileModal";
+import "./MainPage.css";
+import { useAlert } from "../components/AlertContext";
 
-const AUTH_API_URL = "http://localhost:3000/api/auth"
+const AUTH_API_URL = "http://localhost:3000/api/auth";
+
+const LOCAL_USER_SCOPED_KEYS = [
+  "ascension_personal_v1",
+  "ascension_training_plan_v1",
+  "ascension_active_workout_day_v1",
+  "ascension_active_workout_day_date_v1",
+  "ascension_workouts_v1",
+  "ascension_mental_plan_v1",
+  "ascension_mental_completed_v1",
+  "ascension_mental_quiz_answers_v1",
+];
+
+function clearUserScopedLocalCache() {
+  LOCAL_USER_SCOPED_KEYS.forEach((key) => localStorage.removeItem(key));
+}
+
+function normalizeUserId(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  return String(n);
+}
+
+function clearCacheIfSwitchedUser(nextUser) {
+  const previousRaw = localStorage.getItem("user");
+  if (!previousRaw) return;
+
+  try {
+    const previousUser = JSON.parse(previousRaw);
+    const previousId = normalizeUserId(previousUser?.id);
+    const nextId = normalizeUserId(nextUser?.id);
+
+    if (previousId && nextId && previousId !== nextId) {
+      clearUserScopedLocalCache();
+    }
+  } catch {}
+}
 
 export default function MainPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
-
-  const [isAuthOpen, setIsAuthOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [authDefaultTab, setAuthDefaultTab] = useState("login")
-  const [isSubmittingAuth, setIsSubmittingAuth] = useState(false)
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [authDefaultTab, setAuthDefaultTab] = useState("login");
+  const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
 
   const getStoredUser = () => {
     try {
-      const raw = localStorage.getItem("user")
-      return raw ? JSON.parse(raw) : null
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
     } catch {
-      return null
+      return null;
     }
-  }
+  };
 
-  const [user, setUser] = useState(getStoredUser)
+  const [user, setUser] = useState(getStoredUser);
 
   const decodeJwtUser = (token) => {
     try {
-      const payload = token.split(".")[1]
-      const normalized = payload.replace(/-/g, "+").replace(/_/g, "/")
+      const payload = token.split(".")[1];
+      const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
       const json = decodeURIComponent(
         atob(normalized)
           .split("")
           .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
-          .join("")
-      )
+          .join(""),
+      );
 
-      const decoded = JSON.parse(json)
+      const decoded = JSON.parse(json);
 
       return {
         id: decoded.userId,
         username: decoded.username,
         email: decoded.email,
-      }
+      };
     } catch {
-      return null
+      return null;
     }
-  }
+  };
+
+  useEffect(() => {
+    document.title = "Ascension";
+  }, []);
 
   useEffect(() => {
     const syncAuth = () => {
-      const token = localStorage.getItem("authToken")
-      const storedUser = getStoredUser()
+      const token = localStorage.getItem("authToken");
+      const storedUser = getStoredUser();
 
       if (token && storedUser) {
-        setUser(storedUser)
+        setUser(storedUser);
       } else {
-        setUser(null)
+        setUser(null);
       }
-    }
+    };
 
-    syncAuth()
-    window.addEventListener("focus", syncAuth)
-    window.addEventListener("storage", syncAuth)
+    syncAuth();
+    window.addEventListener("focus", syncAuth);
+    window.addEventListener("storage", syncAuth);
 
     return () => {
-      window.removeEventListener("focus", syncAuth)
-      window.removeEventListener("storage", syncAuth)
-    }
-  }, [])
+      window.removeEventListener("focus", syncAuth);
+      window.removeEventListener("storage", syncAuth);
+    };
+  }, []);
 
-  const [typewriterText, setTypewriterText] = useState("")
+  const [typewriterText, setTypewriterText] = useState("");
 
-  const words = useMemo(() => ["comfort", "average"], [])
+  const words = useMemo(() => ["comfort", "average"], []);
 
   useEffect(() => {
-    let wordIndex = 0
-    let charIndex = 0
-    let isDeleting = false
-    let timeoutId
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId;
 
     const type = () => {
-      const currentWord = words[wordIndex]
+      const currentWord = words[wordIndex];
 
       if (isDeleting) {
-        setTypewriterText(currentWord.substring(0, charIndex - 1))
-        charIndex -= 1
+        setTypewriterText(currentWord.substring(0, charIndex - 1));
+        charIndex -= 1;
 
         if (charIndex === 0) {
-          isDeleting = false
-          wordIndex = (wordIndex + 1) % words.length
-          timeoutId = setTimeout(type, 500)
-          return
+          isDeleting = false;
+          wordIndex = (wordIndex + 1) % words.length;
+          timeoutId = setTimeout(type, 500);
+          return;
         }
 
-        timeoutId = setTimeout(type, 50)
+        timeoutId = setTimeout(type, 50);
       } else {
-        setTypewriterText(currentWord.substring(0, charIndex + 1))
-        charIndex += 1
+        setTypewriterText(currentWord.substring(0, charIndex + 1));
+        charIndex += 1;
 
         if (charIndex === currentWord.length) {
-          isDeleting = true
-          timeoutId = setTimeout(type, 2000)
-          return
+          isDeleting = true;
+          timeoutId = setTimeout(type, 2000);
+          return;
         }
 
-        timeoutId = setTimeout(type, 100)
+        timeoutId = setTimeout(type, 100);
       }
-    }
+    };
 
-    type()
+    type();
 
-    return () => clearTimeout(timeoutId)
-  }, [words])
+    return () => clearTimeout(timeoutId);
+  }, [words]);
 
   useEffect(() => {
     const elements = document.querySelectorAll(
-      ".scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale"
-    )
+      ".scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale",
+    );
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("revealed")
+            entry.target.classList.add("revealed");
           }
-        })
+        });
       },
-      { threshold: 0.15 }
-    )
+      { threshold: 0.15 },
+    );
 
-    elements.forEach((element) => observer.observe(element))
+    elements.forEach((element) => observer.observe(element));
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
-
-  const authButtonLabel = user?.username || "Bejelentkezés"
+  const authButtonLabel = user?.username || "Bejelentkezés";
 
   const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId)
+    const element = document.getElementById(sectionId);
 
     if (element) {
       element.scrollIntoView({
         behavior: "smooth",
         block: "start",
-      })
+      });
     }
-  }
+  };
 
   const handleAuthButtonClick = () => {
-    const storedUser = getStoredUser()
+    const storedUser = getStoredUser();
 
     if (storedUser) {
-      setIsProfileOpen(true)
-      return
+      setIsProfileOpen(true);
+      return;
     }
 
-    setAuthDefaultTab("login")
-    setIsAuthOpen(true)
-  }
+    setAuthDefaultTab("login");
+    setIsAuthOpen(true);
+  };
 
   const handleJoinClick = () => {
-    const storedUser = getStoredUser()
+    const storedUser = getStoredUser();
 
     if (storedUser) {
-      navigate("/dashboard")
-      return
+      navigate("/dashboard");
+      return;
     }
 
-    setAuthDefaultTab("register")
-    setIsAuthOpen(true)
-  }
+    setAuthDefaultTab("register");
+    setIsAuthOpen(true);
+  };
 
   const handleProtectedNavigation = (path) => {
-    const storedUser = getStoredUser()
+    const storedUser = getStoredUser();
 
     if (!storedUser) {
-      setAuthDefaultTab("login")
-      setIsAuthOpen(true)
-      return
+      setAuthDefaultTab("login");
+      setIsAuthOpen(true);
+      return;
     }
 
-    navigate(path)
-  }
+    navigate(path);
+  };
 
   const handleLogin = async ({ emailOrUsername, password }) => {
-    setIsSubmittingAuth(true)
+    setIsSubmittingAuth(true);
 
     try {
       const response = await fetch(`${AUTH_API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailOrUsername, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.success || !data.token) {
-        alert(`❌ ${data.error || "Sikertelen bejelentkezés."}`)
-        return
+        await showAlert(`❌ ${data.error || "Sikertelen bejelentkezés."}`);
+        return;
       }
 
-      const userFromToken = decodeJwtUser(data.token)
+      const userFromToken = decodeJwtUser(data.token);
 
       if (!userFromToken) {
-        alert("❌ Sikeres login történt, de a token nem dolgozható fel.")
-        return
+        await showAlert(
+          "❌ Sikeres login történt, de a token nem dolgozható fel.",
+        );
+        return;
       }
 
-      localStorage.setItem("authToken", data.token)
-      localStorage.setItem("user", JSON.stringify(userFromToken))
-      setUser(userFromToken)
-      setIsAuthOpen(false)
+      clearCacheIfSwitchedUser(userFromToken);
 
-      alert(`✅ Sikeres bejelentkezés! Üdv, ${userFromToken.username}! 🎉`)
-      navigate("/dashboard")
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("user", JSON.stringify(userFromToken));
+      setUser(userFromToken);
+      setIsAuthOpen(false);
+
+      await showAlert(
+        `✅ Sikeres bejelentkezés! Üdv, ${userFromToken.username}! 🎉`,
+      );
+      navigate("/dashboard");
     } catch {
-      alert(
-        "❌ Nem lehet kapcsolódni a backendhez.\n\nEllenőrizd:\n- fut-e a backend,\n- a 3000-es portot,\n- az adatbázist."
-      )
+      await showAlert(
+        "❌ Nem lehet kapcsolódni a backendhez.\n\nEllenőrizd:\n- fut-e a backend,\n- a 3000-es portot,\n- az adatbázist.",
+      );
     } finally {
-      setIsSubmittingAuth(false)
+      setIsSubmittingAuth(false);
     }
-  }
+  };
 
   const handleRegister = async ({
     username,
@@ -234,24 +280,26 @@ export default function MainPage() {
     passwordConfirm,
   }) => {
     if (password !== passwordConfirm) {
-      alert("❌ A jelszavak nem egyeznek!")
-      return
+      await showAlert("❌ A jelszavak nem egyeznek!");
+      return;
     }
 
-    setIsSubmittingAuth(true)
+    setIsSubmittingAuth(true);
 
     try {
       const registerResponse = await fetch(`${AUTH_API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
-      })
+      });
 
-      const registerData = await registerResponse.json()
+      const registerData = await registerResponse.json();
 
       if (!registerResponse.ok || !registerData.success) {
-        alert(`❌ ${registerData.error || "Sikertelen regisztráció."}`)
-        return
+        await showAlert(
+          `❌ ${registerData.error || "Sikertelen regisztráció."}`,
+        );
+        return;
       }
 
       // automatikus beléptetés regisztráció után
@@ -262,47 +310,55 @@ export default function MainPage() {
           emailOrUsername: username,
           password,
         }),
-      })
+      });
 
-      const loginData = await loginResponse.json()
+      const loginData = await loginResponse.json();
 
       if (!loginResponse.ok || !loginData.success || !loginData.token) {
-        alert("✅ Sikeres regisztráció, de az automatikus bejelentkezés nem sikerült.")
-        setIsAuthOpen(false)
-        return
+        await showAlert(
+          "✅ Sikeres regisztráció, de az automatikus bejelentkezés nem sikerült.",
+        );
+        setIsAuthOpen(false);
+        return;
       }
 
-      const userFromToken = decodeJwtUser(loginData.token)
+      const userFromToken = decodeJwtUser(loginData.token);
 
       if (!userFromToken) {
-        alert("✅ Sikeres regisztráció, de a token nem dolgozható fel.")
-        setIsAuthOpen(false)
-        return
+        await showAlert(
+          "✅ Sikeres regisztráció, de a token nem dolgozható fel.",
+        );
+        setIsAuthOpen(false);
+        return;
       }
 
-      localStorage.setItem("authToken", loginData.token)
-      localStorage.setItem("user", JSON.stringify(userFromToken))
-      setUser(userFromToken)
-      setIsAuthOpen(false)
+      clearCacheIfSwitchedUser(userFromToken);
 
-      alert(`✅ Sikeres regisztráció! Üdv, ${userFromToken.username}! 🎉`)
-      navigate("/dashboard")
+      localStorage.setItem("authToken", loginData.token);
+      localStorage.setItem("user", JSON.stringify(userFromToken));
+      setUser(userFromToken);
+      setIsAuthOpen(false);
+
+      await showAlert(
+        `✅ Sikeres regisztráció! Üdv, ${userFromToken.username}! 🎉`,
+      );
+      navigate("/dashboard");
     } catch {
-      alert(
-        "❌ Nem lehet kapcsolódni a backendhez.\n\nEllenőrizd:\n- fut-e a backend,\n- a 3000-es portot,\n- az adatbázist."
-      )
+      await showAlert(
+        "❌ Nem lehet kapcsolódni a backendhez.\n\nEllenőrizd:\n- fut-e a backend,\n- a 3000-es portot,\n- az adatbázist.",
+      );
     } finally {
-      setIsSubmittingAuth(false)
+      setIsSubmittingAuth(false);
     }
-  }
+  };
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken")
-    localStorage.removeItem("user")
-    setUser(null)
-    setIsProfileOpen(false)
-    alert("✅ Sikeres kijelentkezés.")
-  }
+  const handleLogout = async () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    setUser(null);
+    setIsProfileOpen(false);
+    await showAlert("✅ Sikeres kijelentkezés.");
+  };
 
   return (
     <div className="page-loaded">
@@ -390,8 +446,8 @@ export default function MainPage() {
             <div className="feature-card scroll-reveal">
               <h3>Test</h3>
               <p>
-                Személyre szabott edzéstervek, táplálkozási útmutatók és progress
-                tracking.
+                Személyre szabott edzéstervek, táplálkozási útmutatók és
+                progress tracking.
               </p>
             </div>
 
@@ -594,5 +650,5 @@ export default function MainPage() {
         onUserRefresh={setUser}
       />
     </div>
-  )
+  );
 }

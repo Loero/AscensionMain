@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProfileModal from "../components/ProfileModal";
 import "./Test.css";
+import { useAlert } from "../components/AlertContext";
 
 const PROFILE_API_URL = "http://localhost:3000/api/profile";
 const FOOD_ADD_API_URL = "http://localhost:3000/api/food/add";
@@ -14,13 +15,29 @@ const PLAN_KEY = "ascension_training_plan_v1";
 const PERSONAL_KEY = "ascension_personal_v1";
 const ACTIVE_WORKOUT_DAY_KEY = "ascension_active_workout_day_v1";
 const ACTIVE_WORKOUT_DAY_DATE_KEY = "ascension_active_workout_day_date_v1";
+const LOCAL_DATA_OWNER_KEY = "ascension_local_data_owner_user_id_v1";
 
 function roundNum(n) {
   return Math.round(Number(n || 0) * 10) / 10;
 }
 
+function estimateFatFromMacros(calories, proteinG, carbG) {
+  const fat =
+    (Number(calories || 0) -
+      Number(proteinG || 0) * 4 -
+      Number(carbG || 0) * 4) /
+    9;
+  return roundNum(Math.max(0, fat));
+}
+
 function getTodayStr() {
   return new Date().toISOString().split("T")[0];
+}
+
+function normalizeUserId(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  return String(n);
 }
 
 function formatDate(dateStr) {
@@ -205,52 +222,10 @@ function getGoalAdvice(goal) {
   return "⚖️ Tartás: Tartsd az erőszinted.";
 }
 
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function getWorkoutMet(workoutType) {
-  const token = normalizeDayToken(workoutType);
-
-  if (
-    token.includes("lab") ||
-    token.includes("legs") ||
-    token.includes("also")
-  ) {
-    return 6.8;
-  }
-
-  if (token.includes("teljes") || token.includes("full")) {
-    return 6.3;
-  }
-
-  return 6.0;
-}
-
-function estimateExerciseDurationMinutes({ sets, reps }) {
-  const setsNum = Number(sets || 0);
-  const repsNum = Number(reps || 0);
-
-  const base = 6 + setsNum * 2 + (repsNum >= 12 ? 2 : 0);
-  return clamp(Math.round(base), 8, 25);
-}
-
-function estimateWorkoutCalories({
-  workoutType,
-  durationMinutes,
-  bodyWeightKg,
-}) {
-  const safeDuration = clamp(Number(durationMinutes || 0), 5, 180);
-  const safeBodyWeight = clamp(Number(bodyWeightKg || 70), 40, 220);
-  const met = getWorkoutMet(workoutType);
-
-  // MET formula: kcal = MET * 3.5 * testsuly(kg) / 200 * ido(perc)
-  const kcal = (met * 3.5 * safeBodyWeight * safeDuration) / 200;
-  return Math.round(clamp(kcal, 15, 1500));
-}
-
 export default function Test() {
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
+  const { showConfirm } = useAlert();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState(() => {
@@ -289,6 +264,43 @@ export default function Test() {
 
   const [workoutEntries, setWorkoutEntries] = useState([]);
 
+  useEffect(() => {
+    document.title = "Ascension - Test";
+  }, []);
+
+  useEffect(() => {
+    const currentUserId = normalizeUserId(user?.id);
+    if (!currentUserId) return;
+
+    const storedOwnerId = normalizeUserId(
+      localStorage.getItem(LOCAL_DATA_OWNER_KEY),
+    );
+
+    if (storedOwnerId && storedOwnerId !== currentUserId) {
+      localStorage.removeItem(PERSONAL_KEY);
+      localStorage.removeItem(PLAN_KEY);
+      localStorage.removeItem(ACTIVE_WORKOUT_DAY_KEY);
+      localStorage.removeItem(ACTIVE_WORKOUT_DAY_DATE_KEY);
+
+      setForm({
+        age: "",
+        weight: "",
+        height: "",
+        gender: "",
+        activity: "",
+        goal: "",
+        experience: "",
+      });
+      setResults(null);
+      setPlanStructure({});
+      setPlanSetTargets({});
+      setActiveWorkoutDay("");
+      setExerciseInputs({});
+    }
+
+    localStorage.setItem(LOCAL_DATA_OWNER_KEY, currentUserId);
+  }, [user?.id]);
+
   const authHeaders = useMemo(() => {
     const token = localStorage.getItem("authToken");
     if (!token) return null;
@@ -317,12 +329,14 @@ export default function Test() {
     const kcal = roundNum((selectedFood.nutrients?.energyKcal || 0) * scale);
     const protein = roundNum((selectedFood.nutrients?.proteinG || 0) * scale);
     const carbs = roundNum((selectedFood.nutrients?.carbG || 0) * scale);
+    const fat = roundNum((selectedFood.nutrients?.fatG || 0) * scale);
 
     return {
       grams,
       kcal,
       protein,
       carbs,
+      fat,
       description: selectedFood.description,
     };
   }, [selectedFood, foodGrams]);
@@ -333,9 +347,10 @@ export default function Test() {
         acc.kcal += Number(entry.energyKcal || 0);
         acc.protein += Number(entry.proteinG || 0);
         acc.carbs += Number(entry.carbG || 0);
+        acc.fat += Number(entry.fatG || 0);
         return acc;
       },
-      { kcal: 0, protein: 0, carbs: 0 },
+      { kcal: 0, protein: 0, carbs: 0, fat: 0 },
     );
   }, [foodEntries]);
 
@@ -523,6 +538,14 @@ export default function Test() {
           energyKcal: Number(entry.calories || 0),
           proteinG: Number(entry.protein_g || 0),
           carbG: Number(entry.carbs_g || 0),
+          fatG: Number(
+            entry.fat_g ??
+              estimateFatFromMacros(
+                entry.calories,
+                entry.protein_g,
+                entry.carbs_g,
+              ),
+          ),
           createdAt: entry.created_at,
         })),
       );
@@ -577,19 +600,28 @@ export default function Test() {
     if (!authHeaders) return true;
 
     try {
-      await fetch("http://localhost:3000/api/profile/personal", {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({
-          age: Number(personalData.age),
-          weightKg: Number(personalData.weight),
-          heightCm: Number(personalData.height),
-          gender: personalData.gender,
-          activityMultiplier: Number(personalData.activity),
-          goal: personalData.goal,
-          experience: personalData.experience,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/profile/details",
+        {
+          method: "POST",
+          headers: authHeaders,
+          body: JSON.stringify({
+            age: Number(personalData.age),
+            weight: Number(personalData.weight),
+            height: Number(personalData.height),
+            gender: personalData.gender,
+            activity: Number(personalData.activity),
+            goal: personalData.goal,
+            experience: personalData.experience,
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        return false;
+      }
+
       return true;
     } catch {
       return false;
@@ -611,14 +643,20 @@ export default function Test() {
       !form.goal ||
       !form.experience
     ) {
-      alert("Tölts ki minden mezőt a terv generálásához!");
+      await showAlert("Tölts ki minden mezőt a terv generálásához!");
       return;
     }
 
     setIsGenerating(true);
 
     try {
-      await savePersonalData(form);
+      const saveOk = await savePersonalData(form);
+      if (!saveOk) {
+        await showAlert(
+          "Nem sikerült menteni a felhasználó adatait. Próbáld újra.",
+        );
+        return;
+      }
 
       const bmr =
         form.gender === "male"
@@ -662,6 +700,9 @@ export default function Test() {
           setTargets: nextSetTargets,
         }),
       );
+
+      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("focus"));
     } finally {
       setIsGenerating(false);
     }
@@ -753,12 +794,12 @@ export default function Test() {
     const grams = Number(foodGrams);
 
     if (!selectedFood) {
-      alert("Válassz ki egy ételt a listából!");
+      await showAlert("Válassz ki egy ételt a listából!");
       return;
     }
 
     if (!grams || grams <= 0) {
-      alert("Adj meg érvényes gramm mennyiséget!");
+      await showAlert("Adj meg érvényes gramm mennyiséget!");
       return;
     }
 
@@ -768,6 +809,9 @@ export default function Test() {
     );
     const proteinG = roundNum((selectedFood.nutrients?.proteinG || 0) * scale);
     const carbG = roundNum((selectedFood.nutrients?.carbG || 0) * scale);
+    const fatG = roundNum((selectedFood.nutrients?.fatG || 0) * scale);
+
+    let savedEntryId = null;
 
     if (authHeaders) {
       try {
@@ -780,28 +824,32 @@ export default function Test() {
             calories,
             proteinG,
             carbsG: carbG,
+            fatG,
             date: getTodayStr(),
           }),
         });
 
         const data = await response.json();
         if (!data.success) {
-          alert(data.error || "Hiba történt az étel mentése során.");
+          await showAlert(data.error || "Hiba történt az étel mentése során.");
           return;
         }
+
+        savedEntryId = data.entryId ?? null;
       } catch {
-        alert("Hálózati hiba történt az étel mentése közben.");
+        await showAlert("Hálózati hiba történt az étel mentése közben.");
         return;
       }
     }
 
     const localEntry = {
-      id: Date.now(),
+      id: savedEntryId || Date.now(),
       description: selectedFood.description,
       grams,
       energyKcal: calories,
       proteinG,
       carbG,
+      fatG,
     };
 
     setFoodEntries((prev) => [...prev, localEntry]);
@@ -825,24 +873,24 @@ export default function Test() {
       const data = await response.json();
 
       if (!data.success) {
-        alert(data.error || "Nem sikerült törölni az ételt.");
+        await showAlert(data.error || "Nem sikerült törölni az ételt.");
         return;
       }
 
       setFoodEntries((prev) => prev.filter((entry) => entry.id !== id));
     } catch {
-      alert("Hálózati hiba történt az étel törlése közben.");
+      await showAlert("Hálózati hiba történt az étel törlése közben.");
     }
   }
 
   async function handleSaveWorkout() {
     if (!authHeaders) {
-      alert("Az edzés mentéséhez jelentkezz be.");
+      await showAlert("Az edzés mentéséhez jelentkezz be.");
       return;
     }
 
     if (!activeWorkoutDay || !currentDayExercises.length) {
-      alert("Nincs aktív tervnap kiválasztva.");
+      await showAlert("Nincs aktív tervnap kiválasztva.");
       return;
     }
 
@@ -861,37 +909,21 @@ export default function Test() {
       .filter((entry) => entry.weight > 0 || entry.sets > 0 || entry.reps > 0);
 
     if (!validEntries.length) {
-      alert("Adj meg legalább egy gyakorlatot a mentéshez.");
+      await showAlert("Adj meg legalább egy gyakorlatot a mentéshez.");
       return;
     }
 
     try {
-      const bodyWeightKg =
-        Number(form.weight || 0) > 0 ? Number(form.weight) : 70;
-
       await Promise.all(
-        validEntries.map((entry) => {
-          const durationMinutes = estimateExerciseDurationMinutes({
-            sets:
-              entry.sets ||
-              getTargetSetsForExercise(activeWorkoutDay, entry.exercise),
-            reps: entry.reps || 0,
-          });
-
-          const caloriesBurned = estimateWorkoutCalories({
-            workoutType: activeWorkoutDay,
-            durationMinutes,
-            bodyWeightKg,
-          });
-
-          return fetch(WORKOUT_API_URL, {
+        validEntries.map((entry) =>
+          fetch(WORKOUT_API_URL, {
             method: "POST",
             headers: authHeaders,
             body: JSON.stringify({
               workoutType: activeWorkoutDay,
               exerciseName: entry.exercise,
-              durationMinutes,
-              caloriesBurned,
+              durationMinutes: 45,
+              caloriesBurned: 250,
               sets:
                 entry.sets ||
                 getTargetSetsForExercise(activeWorkoutDay, entry.exercise),
@@ -900,22 +932,22 @@ export default function Test() {
               notes: "",
               date: getTodayStr(),
             }),
-          });
-        }),
+          }),
+        ),
       );
 
       await loadWorkouts();
       window.dispatchEvent(new Event("storage"));
       window.dispatchEvent(new Event("focus"));
-      alert("Edzés sikeresen mentve.");
+      await showAlert("Edzés sikeresen mentve.");
     } catch {
-      alert("Hiba történt az edzés mentése során.");
+      await showAlert("Hiba történt az edzés mentése során.");
     }
   }
 
   async function handleDeleteWorkout(id) {
     if (!authHeaders) return;
-    if (!window.confirm("Biztosan törlöd ezt az edzést?")) return;
+    if (!(await showConfirm("Biztosan törlöd ezt az edzést?"))) return;
 
     try {
       const response = await fetch(`${WORKOUT_API_URL}/${id}`, {
@@ -925,13 +957,13 @@ export default function Test() {
       const data = await response.json();
 
       if (!data.success) {
-        alert(data.error || "Nem sikerült törölni az edzést.");
+        await showAlert(data.error || "Nem sikerült törölni az edzést.");
         return;
       }
 
       setWorkoutEntries((prev) => prev.filter((entry) => entry.id !== id));
     } catch {
-      alert("Hálózati hiba történt az edzés törlése közben.");
+      await showAlert("Hálózati hiba történt az edzés törlése közben.");
     }
   }
 
@@ -1247,6 +1279,10 @@ export default function Test() {
                     <span className="macro-label">Szénhidrát</span>
                     <span className="macro-value">{foodPreview.carbs} g</span>
                   </div>
+                  <div className="macro-item">
+                    <span className="macro-label">Zsír</span>
+                    <span className="macro-value">{foodPreview.fat} g</span>
+                  </div>
                   <div className="macro-item macro-note">
                     <span>{foodPreview.description}</span>
                     <span>{foodPreview.grams} g</span>
@@ -1301,6 +1337,10 @@ export default function Test() {
                         <span className="chip-label">Szénhidrát</span>
                         <span className="chip-value">{entry.carbG} g</span>
                       </div>
+                      <div className="food-chip">
+                        <span className="chip-label">Zsír</span>
+                        <span className="chip-value">{entry.fatG || 0} g</span>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -1313,6 +1353,7 @@ export default function Test() {
             <p>Kalória: {roundNum(foodTotals.kcal)} kcal</p>
             <p>Fehérje: {roundNum(foodTotals.protein)} g</p>
             <p>Szénhidrát: {roundNum(foodTotals.carbs)} g</p>
+            <p>Zsír: {roundNum(foodTotals.fat)} g</p>
           </div>
         </section>
 
