@@ -6,7 +6,7 @@ import swaggerSpec from "./swagger.js";
 import { v2 as cloudinary } from "cloudinary";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Sequelize, DataTypes, Op, fn, col } from "sequelize";
+import { Sequelize, DataTypes, Op, fn, col, QueryTypes } from "sequelize";
 
 const app = express();
 app.use(
@@ -339,6 +339,43 @@ MentalRoutineTracking.belongsTo(MentalRoutine, {
 });
 
 const JWT_SECRET = "ascension_secret_2026";
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || JWT_SECRET;
+
+function authenticateAdminToken(req, res, next) {
+  const authHeader =
+    req.headers["authorization"] || req.headers["Authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: "Admin token hianyzik.",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
+    if (decoded?.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        error: "Nincs admin jogosultsag.",
+      });
+    }
+
+    req.admin = {
+      username: decoded.username,
+    };
+
+    return next();
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      error: "Ervenytelen vagy lejart admin token.",
+    });
+  }
+}
 
 /* ====== AUTH MIDDLEWARE ====== */
 function authenticateToken(req, res, next) {
@@ -4061,6 +4098,166 @@ app.get("/api/mental/stats", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error("mental stats error", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/* ====== ADMIN ENDPOINTS ====== */
+app.post("/api/admin/login", async (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        error: "A username es password kotelezo.",
+      });
+    }
+
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      return res.status(401).json({
+        success: false,
+        error: "Hibas admin belepesi adatok.",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        role: "admin",
+        username: ADMIN_USERNAME,
+      },
+      ADMIN_JWT_SECRET,
+      { expiresIn: "12h" },
+    );
+
+    return res.json({
+      success: true,
+      token,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/admin/overview", authenticateAdminToken, async (req, res) => {
+  try {
+    const [
+      usersCount,
+      foodEntriesCount,
+      workoutEntriesCount,
+      skinRoutinesCount,
+    ] = await Promise.all([
+      User.count(),
+      FoodEntry.count(),
+      WorkoutEntry.count(),
+      SkinRoutine.count(),
+    ]);
+
+    const [foodAgg] = await FoodEntry.findAll({
+      attributes: [[fn("COALESCE", fn("SUM", col("calories")), 0), "total"]],
+      raw: true,
+    });
+
+    const [workoutAgg] = await WorkoutEntry.findAll({
+      attributes: [
+        [fn("COALESCE", fn("SUM", col("calories_burned")), 0), "total"],
+      ],
+      raw: true,
+    });
+
+    return res.json({
+      success: true,
+      overview: {
+        users_count: Number(usersCount || 0),
+        food_entries_count: Number(foodEntriesCount || 0),
+        workout_entries_count: Number(workoutEntriesCount || 0),
+        skin_routines_count: Number(skinRoutinesCount || 0),
+        total_food_calories: Number(foodAgg?.total || 0),
+        total_burned_calories: Number(workoutAgg?.total || 0),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/admin/users", authenticateAdminToken, async (req, res) => {
+  try {
+    const rawLimit = Number(req.query.limit || 200);
+    const limit =
+      Number.isFinite(rawLimit) && rawLimit > 0
+        ? Math.min(Math.trunc(rawLimit), 1000)
+        : 200;
+
+    const users = await sequelize.query(
+      `
+      SELECT
+        u.id,
+        u.username,
+        u.email,
+        u.created_at,
+        (SELECT COUNT(*) FROM food_entries fe WHERE fe.user_id = u.id) AS food_entries,
+        (SELECT COUNT(*) FROM workout_entries we WHERE we.user_id = u.id) AS workout_entries,
+        (SELECT COUNT(*) FROM skin_routines sr WHERE sr.user_id = u.id) AS skin_routines,
+        (SELECT COALESCE(SUM(fe.calories), 0) FROM food_entries fe WHERE fe.user_id = u.id) AS total_food_calories,
+        (SELECT COALESCE(SUM(we.calories_burned), 0) FROM workout_entries we WHERE we.user_id = u.id) AS total_burned_calories
+      FROM users u
+      ORDER BY u.id DESC
+      LIMIT :limit
+      `,
+      {
+        replacements: { limit },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    return res.json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.delete("/api/admin/users/:id", authenticateAdminToken, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Ervenytelen user id.",
+      });
+    }
+
+    const deletedCount = await User.destroy({
+      where: { id: userId },
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Felhasznalo nem talalhato.",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Felhasznalo torolve.",
+    });
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: error.message,

@@ -30,8 +30,7 @@ public sealed class AdminApiClient
     using var content = new StringContent(body, Encoding.UTF8, "application/json");
     using var response = await _httpClient.PostAsync("api/admin/login", content);
 
-    var raw = await response.Content.ReadAsStringAsync();
-    var data = JsonSerializer.Deserialize<AdminLoginResponse>(raw, JsonOptions);
+    var data = await ReadJsonOrErrorAsync<AdminLoginResponse>(response);
 
     if (response.IsSuccessStatusCode && data?.Success == true && !string.IsNullOrWhiteSpace(data.Token))
     {
@@ -47,8 +46,7 @@ public sealed class AdminApiClient
     EnsureAuthorized();
 
     using var response = await _httpClient.GetAsync("api/admin/overview");
-    var raw = await response.Content.ReadAsStringAsync();
-    return JsonSerializer.Deserialize<AdminOverviewResponse>(raw, JsonOptions);
+    return await ReadJsonOrErrorAsync<AdminOverviewResponse>(response);
   }
 
   public async Task<AdminUsersResponse?> GetUsersAsync(int limit = 200)
@@ -56,8 +54,7 @@ public sealed class AdminApiClient
     EnsureAuthorized();
 
     using var response = await _httpClient.GetAsync($"api/admin/users?limit={limit}");
-    var raw = await response.Content.ReadAsStringAsync();
-    return JsonSerializer.Deserialize<AdminUsersResponse>(raw, JsonOptions);
+    return await ReadJsonOrErrorAsync<AdminUsersResponse>(response);
   }
 
   public async Task<ApiMessageResponse?> DeleteUserAsync(int userId)
@@ -65,8 +62,69 @@ public sealed class AdminApiClient
     EnsureAuthorized();
 
     using var response = await _httpClient.DeleteAsync($"api/admin/users/{userId}");
+    return await ReadJsonOrErrorAsync<ApiMessageResponse>(response);
+  }
+
+  private async Task<T?> ReadJsonOrErrorAsync<T>(HttpResponseMessage response) where T : class, new()
+  {
     var raw = await response.Content.ReadAsStringAsync();
-    return JsonSerializer.Deserialize<ApiMessageResponse>(raw, JsonOptions);
+
+    try
+    {
+      var parsed = JsonSerializer.Deserialize<T>(raw, JsonOptions);
+      if (parsed is not null)
+      {
+        return parsed;
+      }
+    }
+    catch
+    {
+      // Fallback below gives user-friendly error in UI instead of JSON parser exception.
+    }
+
+    var message = $"API hiba ({(int)response.StatusCode}): {response.ReasonPhrase}";
+    if (!string.IsNullOrWhiteSpace(raw))
+    {
+      message += $" | Valasz: {raw.Trim()}";
+    }
+
+    if (typeof(T) == typeof(AdminLoginResponse))
+    {
+      return new AdminLoginResponse
+      {
+        Success = false,
+        Error = message,
+      } as T;
+    }
+
+    if (typeof(T) == typeof(AdminOverviewResponse))
+    {
+      return new AdminOverviewResponse
+      {
+        Success = false,
+        Error = message,
+      } as T;
+    }
+
+    if (typeof(T) == typeof(AdminUsersResponse))
+    {
+      return new AdminUsersResponse
+      {
+        Success = false,
+        Error = message,
+      } as T;
+    }
+
+    if (typeof(T) == typeof(ApiMessageResponse))
+    {
+      return new ApiMessageResponse
+      {
+        Success = false,
+        Error = message,
+      } as T;
+    }
+
+    throw new InvalidOperationException(message);
   }
 
   private void EnsureAuthorized()
